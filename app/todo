@@ -16,4 +16,9 @@
     - issues with lighting, blur, translation etc
         - requires extensive image manipulation? various processing modules?
 
--
+
+LTP
+- save past results
+    - spreadsheet
+- React
+- save / update model with new data
