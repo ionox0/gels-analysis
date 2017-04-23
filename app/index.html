@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+            <title>Gels Analysis</title>
+            <!--<link rel="icon" href="./img/t.png">-->
+            <link rel="stylesheet" href="css/styles.css">
+
+            <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="vendor/jquery.imgareaselect-0.9.10/css/imgareaselect-default.css" />
+            <script type="text/javascript" src="vendor/jquery.imgareaselect-0.9.10/scripts/jquery.imgareaselect.pack.js"></script>
+    </head>
+
+        <h1>Gels Analysis</h1>
+        <h5>Please upload a JPG with an image of your Gel to be analyzed.</h5>
+        <h5>Enter ROI coodinates using the cursor, and band coordinates + threshold level in the inputs.</h5>
+
+        <div id="gel-analysis__container">
+
+            <div id="gel-analysis-upload">
+
+                <div id="gel-analysis-form">
+
+                    PDF gel image file
+                    <input id="the-file" name="file" type="file" />
+
+                    <button onclick="callRotateImage()">Rotate</button>
+
+                    <div class="upload-setting-item__container">
+                        Max Y
+                        <input id="min-y-value" type="number" value="0" />
+                    </div>
+
+                    <div class="upload-setting-item__container">
+                        Min Y
+                        <input id="max-y-value" type="number" value="100" />
+                    </div>
+
+                    <div class="upload-setting-item__container">
+                        Threshold
+                        <input id="threshold" type="number" value="0.4" />
+                    </div>
+
+                    <button onclick="analyze()">Analyze</button>
+
+                </div>
+
+                <img id="gel-image" src="#" alt="preview" />
+            </div>
+
+            <div id="gel-analysis-result"></div>
+
+        </div>
+
+
+        <script id="gel-analysis-template" type="text/x-jquery-tmpl">
+            {{ result }}
+        </script>
+
+
+        <script src="https://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+        <script src="js/gels-analysis.js"></script>
+
+    </body>
+
+</html>

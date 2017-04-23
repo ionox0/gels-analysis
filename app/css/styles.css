@@ -1,0 +1,39 @@
+body {
+
+}
+
+#gel-analysis__container {
+
+}
+
+#gel-analysis-upload {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#gel-analysis-form {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#the-file {
+
+}
+
+#gel-image {
+    width: 500px;
+}
+
+.upload-setting-item__container {
+
+}
+
+#gel-analysis-result {
+    display: inline-block;
+}
+
+#gel-analysis-result img {
+    width: 500px;
+}
+
+
