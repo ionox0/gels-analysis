@@ -12,8 +12,10 @@
     </head>
 
         <h1>Band Detection</h1>
-        <h5>Please upload a JPG with an image of your Gel to be analyzed.</h5>
-        <h5>Enter ROI coodinates using the cursor, and band coordinates + threshold level in the inputs.</h5>
+        <h5>1. Upload a JPG with an image of Gel to be analyzed</h5>
+        <h5>2. Enter ROI coodinates using the cursor</h5>
+        <h5>3. Enter threshold level under which to detect bands</h5>
+        <h5>4. Enter lower and upper Y bounds over which to search for band (relative to top of ROI)</h5>
 
         <div id="gel-analysis__container">
 
@@ -27,12 +29,12 @@
                     <button onclick="callRotateImage()">Rotate</button>
 
                     <div class="upload-setting-item__container">
-                        Max Y
+                        Y top
                         <input id="min-y-value" type="number" value="0" />
                     </div>
 
                     <div class="upload-setting-item__container">
-                        Min Y
+                        Y bottom
                         <input id="max-y-value" type="number" value="130" />
                     </div>
 
