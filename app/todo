@@ -7,9 +7,13 @@
 - tests
 - only use blue channel for y_mean?
 - heroku with cv2...
+- modularize
 
 - classification
     - train on old samples
     - how to normalize coordinates?
+    - which gel format to use? how to normalize across colors + dimensions / lengths?
+    - issues with lighting, blur, translation etc
+        - requires extensive image manipulation? various processing modules?
 
 -
