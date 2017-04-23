@@ -1,0 +1,15 @@
+- weird struct
+- works with pdfs (extracts images)
+- y_min and y_max from bounding box (js)
+- return densitometry graph of lanes
+- normalize y_min and y_max?
+- logging
+- tests
+- only use blue channel for y_mean?
+- heroku with cv2...
+
+- classification
+    - train on old samples
+    - how to normalize coordinates?
+
+-

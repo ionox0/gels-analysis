@@ -1,27 +1,20 @@
 import os
-import shutil
+# import shutil
 import itertools
 import logging
 import sys
-import cv2
 import matplotlib
 import numpy as np
-import pandas as pd
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 from skimage import data, filters, transform
 from skimage.filters import threshold_otsu
-
-# from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
-# from sklearn.cross_validation import train_test_split
-
 
 
 sys.path.insert(0, '/Users/ianjohnson/.virtualenvs/cv/lib/python2.7/site-packages/')
 logger = logging.getLogger(__name__)
 
 DELIMITER = '\n' + '*' * 30 + ' '
-filename = './blue gels older format 2010.pdf'
 
 
 def extract_images_from_pdf(filename):
@@ -195,14 +188,6 @@ def analyze_gel(filename, rois, danger_zone, threshold):
 
     result_filename = 'labeled_image.jpg'
     matplotlib.image.imsave(result_filename, labeled_image)
-
-    # import scipy.misc
-    # scipy.misc.toimage(labeled_image, cmin=0.0, cmax=150.0).save('outfile.jpg')
-
-    # result_filename = "labeled_image.jpg"
-    # jpgfile = open(result_filename, "wb")
-    # jpgfile.write(labeled_image)
-    # jpgfile.close()
 
     clear_data()
     return result_filename
