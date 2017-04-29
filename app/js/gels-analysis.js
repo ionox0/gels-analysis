@@ -32,9 +32,14 @@ function readURL(input) {
 
         reader.onload = function (e) {
             var img = $('#gel-image');
+
+            img.on('load', function(){
+                resizedWidth = img.width();
+                resizedHeight = img.height();
+                console.log(resizedWidth, resizedHeight);
+            });
+
             img.attr('src', e.target.result);
-            resizedWidth = img.width();
-            resizedHeight = img.height();
         };
         reader.readAsDataURL(input.files[0]);
 
@@ -74,7 +79,7 @@ function endSelect(img, selection) {
         'y_start': original_y1,
         'y_end': original_y2,
     };
-
+    console.log(roi);
     rois.push(roi);
 }
 

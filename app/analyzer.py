@@ -5,7 +5,7 @@ import logging
 import sys
 import matplotlib
 import numpy as np
-# from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 
 from skimage import data, filters, transform
 from skimage.filters import threshold_otsu

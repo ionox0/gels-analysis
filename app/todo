@@ -6,8 +6,8 @@
 - logging
 - tests
 - only use blue channel for y_mean?
-- heroku with cv2...
 - modularize
+- mean kernel smoothing
 
 - classification
     - train on old samples
@@ -22,3 +22,10 @@ LTP
     - spreadsheet
 - React
 - save / update model with new data
+
+
+
+1. fix in firefox (/ safari / ie)
+2. auto y-boxing
+3. auto classification
+
