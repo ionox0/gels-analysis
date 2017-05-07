@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Gels Classifier Training</title>
 
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/train.css">
     <link rel="stylesheet" href="vendor/cropperjs-master/dist/cropper.min.css">
 
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
@@ -14,23 +14,25 @@
 <body>
 
     <h1>Classifier Training</h1>
-    <!--<h5>1. Upload a JPG with an image of Gel on which to train</h5>-->
-    <!--<h5>2. Select a lane using the cursor</h5>-->
-    <!--<h5>3. Hit 1 for control or 2 for condition</h5>-->
-    <!--<h5>4. Repeat 2. and 3. for all lanes</h5>-->
-    <!--<h5>5. Hit submit to upload these labeled training examples</h5>-->
-    <!--<h5>6. After uploading all training examples:</h5>-->
+    <h5>1. Choose a JPG file with an image of Gel on which to train</h5>
+    <h5>2. Highlight first lane using the cursor</h5>
+    <h5>3. Hit 1 to label lane as Control Lane, 2 to label as Condition, adjust crop region as necessary</h5>
+    <h5>4. Repeat 2. and 3. for all lanes</h5>
+    <h5>5. Hit submit to upload these labeled training examples</h5><br>
+    <!--<h5>After uploading all training examples:</h5>-->
     <!--<h5>a. Upload new gel with lanes to automatically classify</h5>-->
     <!--<h5>b. Select the roi with lanes to classify</h5>-->
     <!--<h5>c. Hit classify to classify new lanes</h5>-->
 
     <div id="gel-analysis__container">
 
+        <div id="upload-result"></div>
+
         <div id="gel-analysis-upload">
 
             <div id="gel-analysis-form">
 
-                JPG gel image file
+                JPG gel image file, for training or testing:
                 <input id="the-file" name="file" type="file" />
 
                 <div class="rotate-buttons">
@@ -48,13 +50,14 @@
 
             </div>
 
-            <img id="gel-image" src="#" alt="preview" />
+            <div class="gel-image__container">
+                <div>
+                    <img id="gel-image" src="#" alt="preview" />
+                </div>
+            </div>
         </div>
 
-        <div id="upload-result"></div>
-
     </div>
-
 
     <script src="vendor/cropperjs-master/dist/cropper.min.js"></script>
     <script src="js/gels-auto-analysis.js"></script>

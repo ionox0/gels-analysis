@@ -1,9 +1,10 @@
 body {
-
+    background: aliceblue;
 }
 
 #gel-analysis__container {
-
+    padding: 20px;
+    background: antiquewhite;
 }
 
 #gel-analysis-upload {
@@ -13,7 +14,13 @@ body {
 
 #gel-analysis-form {
     display: inline-block;
+    width: 35%;
     vertical-align: top;
+}
+
+.cropper-container {
+    display: inline-block;
+    width: 60% !important;
 }
 
 #the-file {

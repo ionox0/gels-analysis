@@ -1,7 +1,41 @@
+body {
+    background: aliceblue;
+}
+
+#gel-analysis__container {
+    padding: 20px;
+    background: antiquewhite;
+}
+
+#gel-analysis-upload {
+    width: 100%;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#gel-analysis-form {
+    display: inline-block;
+    width: 35%;
+    vertical-align: top;
+}
+
+.cropper-container {
+
+}
+
 .rotate-buttons {
 
 }
 
 .rotate-button {
-    display: block;
+
+}
+
+.gel-image__container {
+    display: inline-block;
+    width: 60%;
+}
+
+.gel-image__container img {
+    max-width: 100%;
 }

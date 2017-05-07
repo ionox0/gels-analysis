@@ -116,7 +116,7 @@ function uploadTrainingData(){
 
                 if (xhr.status === 200) {
 
-                    $('#upload-result').text('Finished');
+                    $('#upload-result').text('Upload Complete');
 
                 } else {
                     $('body').empty().append(xhr.responseText);
