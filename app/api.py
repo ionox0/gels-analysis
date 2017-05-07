@@ -9,6 +9,7 @@ from nocache import nocache
 
 
 from analyzer import analyze_gel
+from training_data_uploader import create_train_images
 
 
 app = Flask(__name__, static_url_path='', static_folder='.')
@@ -29,6 +30,34 @@ def root():
 @nocache
 def result():
     return app.send_static_file('labeled_image.jpg')
+
+
+
+
+@app.route('/upload_train_data', methods=['GET', 'POST'])
+def upload_train_data_route():
+    """
+    Flask route for uploading training data
+    :return: success bool
+    """
+    if 'picture' not in request.files:
+        raise Exception('no file provided')
+
+    file = request.files['picture']
+    filename = request.form['filename']
+    if file:
+        # filename = secure_filename(file.filename)
+        src = os.getcwd() + '/full_gels/'
+        file.save(os.path.join(src, filename))
+
+    rois = json.loads(request.form['rois'])
+    labels = json.loads(request.form['labels'])
+
+    result = create_train_images(filename, rois, labels)
+
+    return 'success'
+
+
 
 
 @app.route('/analyze', methods=['GET', 'POST'])

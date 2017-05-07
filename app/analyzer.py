@@ -5,7 +5,7 @@ import logging
 import sys
 import matplotlib
 import numpy as np
-from matplotlib import pyplot as plt
+# from matplotlib import pyplot as plt
 
 from skimage import data, filters, transform
 from skimage.filters import threshold_otsu
@@ -63,13 +63,14 @@ def get_raw_images_in_dir(dir):
     raw_imgs = []
     for img_file in filter(jpg, os.listdir(dir)):
         img = data.imread(dir + '/' + img_file, 0)
+        # todo - bad
         img = transform.rotate(img, 90.0)
         raw_imgs.append(img)
 
     return raw_imgs
 
 
-# Mean across horizontal axis, along the vertical axis
+# Mean across horizontal axis
 def calc_lane_means(lanes):
     lanes_means = []
     for lane in lanes:

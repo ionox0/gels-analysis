@@ -1,17 +1,16 @@
 
 # coding: utf-8
 
-# In[3]:
+# In[1]:
 
-import os
 import itertools
-import sys
 import cv2
 import numpy as np
 import pandas as pd
 import scipy
 import skimage
 from skimage import data, filters
+from skimage.filters import threshold_otsu
 import matplotlib
 from matplotlib import pyplot as plt
 
@@ -26,47 +25,6 @@ sys.path.insert(0, '/Users/ianjohnson/.virtualenvs/cv/lib/python2.7/site-package
 get_ipython().magic(u'matplotlib inline')
 
 
-# ### Extract images from pdfs
-
-# In[8]:
-
-# https://nedbatchelder.com/blog/200712/extracting_jpgs_from_pdfs.html
-pdf = file('../data/blue gels older format 2010.pdf', "rb").read()
-
-startmark = "\xff\xd8"
-startfix = 0
-endmark = "\xff\xd9"
-endfix = 2
-i = 0
-
-njpg = 0
-while True:
-    istream = pdf.find("stream", i)
-    if istream < 0:
-        break
-    istart = pdf.find(startmark, istream, istream+20)
-    if istart < 0:
-        i = istream+20
-        continue
-    iend = pdf.find("endstream", istart)
-    if iend < 0:
-        raise Exception("Didn't find end of stream!")
-    iend = pdf.find(endmark, iend-20)
-    if iend < 0:
-        raise Exception("Didn't find end of JPG!")
-     
-    istart += startfix
-    iend += endfix
-    print "JPG %d from %d to %d" % (njpg, istart, iend)
-    jpg = pdf[istart:iend]
-    jpgfile = file("jpg%d.jpg" % njpg, "wb")
-    jpgfile.write(jpg)
-    jpgfile.close()
-     
-    njpg += 1
-    i = iend
-
-
 # In[9]:
 
 def jpg(filename):
@@ -77,15 +35,6 @@ for img_file in filter(jpg, os.listdir('.')):
     img = data.imread(img_file, 0)
     img = cv2.rotate(img, rotateCode=2)
     raw_imgs.append(img)
-
-
-# ### Vis an image
-
-# In[10]:
-
-plt.figure(figsize=(10, 10))
-plt.imshow(raw_imgs[0])
-plt.show()
 
 
 # ### Extracting and visualizing the individual lanes
@@ -160,8 +109,6 @@ plt.imshow(raw_imgs[0][300:700, 100:1800])
 
 # In[89]:
 
-from skimage.filters import threshold_otsu
-    
 roi_metadata = {
     'x_start': 100,
     'x_end': 1800,

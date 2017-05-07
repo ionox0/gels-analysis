@@ -1,2 +1,7 @@
 .idea
 data
+app/train_images
+app/train_images/*
+app/uploaded_data
+app/full_gels
+
