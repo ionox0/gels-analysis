@@ -36,7 +36,7 @@ from sklearn.externals import joblib
 train_image_files = [x for x in os.listdir('../app/train_images/') if '.jpg' in x]
 
 input_shape = (233, 60, 4)
-input_dim = (60, 233)
+input_dim = (50, 233)
 num_classes = 2
 
 

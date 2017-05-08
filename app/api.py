@@ -2,7 +2,7 @@ import os
 import json
 import StringIO
 # from PIL import Image
-from flask import Flask
+from flask import Flask, render_template
 from flask import request
 from flask import send_file
 from nocache import nocache
@@ -16,16 +16,33 @@ from training_data_uploader import create_train_images
 app = Flask(__name__, static_url_path='', static_folder='.')
 
 
-# roi_metadata = {
-#     'x_start': 100,
-#     'x_end': 1800,
-#     'y_start': 300,
-#     'y_end': 600,
-# }
-
 @app.route('/')
 def root():
     return app.send_static_file('index.html')
+
+
+@app.route('/train_images')
+def dirtree():
+    '''
+    Route to show the existing training image files
+    :return:
+    '''
+    path = os.path.expanduser(u'./train_images')
+    return render_template('dirtree.html', tree=make_tree(path))
+
+def make_tree(path):
+    tree = dict(name=os.path.basename(path), children=[])
+    try: lst = os.listdir(path)
+    except OSError:
+        pass #ignore errors
+    else:
+        for name in lst:
+            fn = os.path.join(path, name)
+            if os.path.isdir(fn):
+                tree['children'].append(make_tree(fn))
+            else:
+                tree['children'].append(dict(name=name))
+    return tree
 
 
 @app.route('/result')
