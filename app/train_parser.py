@@ -50,7 +50,7 @@ def get_training_data():
             train_labels.append(1)
         else:
             train_labels.append(0)
-    return np.array(train_images), np.array(train_labels)
+    return np.asarray(train_images), np.asarray(train_labels)
 
 
 def do_threshold(img):
@@ -100,7 +100,7 @@ def resize_images(imgs):
     for img in imgs:
         img_resized = resize(img, input_dim)
         imgs_resized.append(img_resized)
-    return np.array(imgs_resized)
+    return np.asarray(imgs_resized)
 
 
 # Mean across horizontal axis
