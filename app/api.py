@@ -45,6 +45,25 @@ def make_tree(path):
     return tree
 
 
+@app.route('/delete_train_images', methods=['DELETE'])
+def delete_train_images_route():
+    '''
+    Route to show the existing training image files
+    :return:
+    '''
+    folder = './train_images'
+    for file in os.listdir(folder):
+        file_path = os.path.join(folder, file)
+        try:
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+                # elif os.path.isdir(file_path): shutil.rmtree(file_path)
+        except Exception as e:
+            print(e)
+
+    return 'success'
+
+
 @app.route('/result')
 @nocache
 def result():

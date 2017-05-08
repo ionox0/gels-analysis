@@ -158,3 +158,10 @@ function sendTrainRequest(){
     xhr.open('POST', '/fit_model', true);
     xhr.send();
 }
+
+
+function deleteTrainImages(){
+    var xhr = new XMLHttpRequest();
+    xhr.open('DELETE', '/delete_train_images', true);
+    xhr.send();
+}
