@@ -1,7 +1,5 @@
 var cropper;
-function initCropper(image){
-    cropper = new Cropper(image);
-}
+var img = $('#gel-image');
 
 var origHeight;
 var origWidth;
@@ -9,6 +7,15 @@ var resizedHeight;
 var resizedWidth;
 function readURL(input) {
     if (input.files && input.files[0]) {
+        if (cropper) {
+            cropper.destroy();
+        }
+
+        img.unbind();
+
+        // Reset lanes
+        rois = [];
+        labels = [];
 
         // Set original height / width
         var newImg = new Image();
@@ -28,14 +35,11 @@ function readURL(input) {
         var reader = new FileReader();
 
         reader.onload = function (e) {
-            var img = $('#gel-image');
-
             img.on('load', function(){
                 resizedWidth = img.width();
                 resizedHeight = img.height();
-                console.log(resizedWidth, resizedHeight);
 
-                initCropper(document.getElementById('gel-image'));
+                cropper = new Cropper(document.getElementById('gel-image'));
             });
 
             img.attr('src', e.target.result);
