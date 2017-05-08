@@ -33,7 +33,6 @@ from sklearn.metrics import roc_auc_score, confusion_matrix
 from sklearn.externals import joblib
 
 
-train_image_files = [x for x in os.listdir('../app/train_images/') if '.jpg' in x]
 
 input_shape = (233, 50, 4)
 input_dim = (50, 233)
@@ -41,6 +40,7 @@ num_classes = 2
 
 
 def get_training_data():
+    train_image_files = [x for x in os.listdir('../app/train_images/') if '.jpg' in x]
     train_images = []
     train_labels = []
     for f in train_image_files:
@@ -201,9 +201,6 @@ def fit_and_save_model():
     X_final = X_means_df
     y_final = y_df[0]
     x_train, x_test, y_train, y_test = train_test_split(X_final, y_final, stratify=y_df[0])
-
-    # y_train = to_categorical(y_train, num_classes)
-    # y_test = to_categorical(y_test, num_classes)
 
     print x_train[0].shape, x_test[0].shape, y_train.shape, y_test.shape
 
