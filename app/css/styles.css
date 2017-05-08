@@ -18,6 +18,10 @@ body {
     vertical-align: top;
 }
 
+.manual-classification-settings {
+    display: none;
+}
+
 .cropper-container {
     display: inline-block;
     width: 60% !important;

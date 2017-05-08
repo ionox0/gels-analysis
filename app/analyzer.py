@@ -1,14 +1,18 @@
 import os
 # import shutil
+import pandas as pd
 import itertools
 import logging
 import sys
 import matplotlib
 import numpy as np
-# from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 
 from skimage import data, filters, transform
 from skimage.filters import threshold_otsu
+from sklearn.externals import joblib
+
+from train_parser import collapse_whitespace_margins, collapse_bottom_margins, resize_images
 
 
 sys.path.insert(0, '/Users/ianjohnson/.virtualenvs/cv/lib/python2.7/site-packages/')
@@ -56,7 +60,7 @@ def extract_images_from_pdf(filename):
         i = iend
 
 
-def get_raw_images_in_dir(dir):
+def get_raw_images_in_dir(dir, rotate=True):
     def jpg(filename):
         return 'jpg' in filename
 
@@ -64,7 +68,8 @@ def get_raw_images_in_dir(dir):
     for img_file in filter(jpg, os.listdir(dir)):
         img = data.imread(dir + '/' + img_file, 0)
         # todo - bad
-        img = transform.rotate(img, 90.0)
+        if rotate:
+            img = transform.rotate(img, 90.0)
         raw_imgs.append(img)
 
     return raw_imgs
@@ -118,7 +123,8 @@ def do_threshold(img):
     return binary
 
 
-def isolate_lanes(img):
+def isolate_lanes(img, img_orig=None):
+    # todo - img_orig
     vert_sum_img = calc_img_vertical_sum(img)
     img_rolled = np.rollaxis(vert_sum_img, -1)
     max_intensity = np.max(vert_sum_img)
@@ -129,7 +135,10 @@ def isolate_lanes(img):
     for i, val in enumerate(separator_indices):
         if i == 0: continue
         if separator_indices[i] != separator_indices[i - 1] + 1:
-            lanes.append(img[:, separator_indices[i - 1]: val])
+            if img_orig != None:
+                lanes.append(img_orig[:, separator_indices[i - 1]: val])
+            else:
+                lanes.append(img[:, separator_indices[i - 1]: val])
             coords.append((separator_indices[i - 1], val))
     return lanes, coords
 
@@ -192,3 +201,46 @@ def analyze_gel(filename, rois, danger_zone, threshold):
 
     clear_data()
     return result_filename
+
+
+def auto_classify_gel(filename, rois):
+    dir = './uploaded_data'
+    img = get_raw_images_in_dir(dir, rotate=False)[0]
+
+    all_lanes = []
+    all_coords = []
+    for roi_metadata in rois:
+        img_roi = extract_roi(img, roi_metadata)
+        roi_thresholded = do_threshold(img_roi).astype(np.uint16)
+        lanes, coords = isolate_lanes(roi_thresholded, img_roi)
+
+        all_lanes += lanes
+
+        # todo - weird struct
+        # (x_start, x_end), ({x_start, x_end, y_start, y_end})
+        coords_x_y = zip(coords, itertools.repeat(roi_metadata))
+        all_coords += coords_x_y
+
+    # X = np.array(all_lanes)
+    # print X.shape
+
+    X = all_lanes
+
+    X_threshold = [do_threshold(x).astype(np.uint16) for x in X]
+    # X_threshold = np.array(X_threshold)
+    print len(X_threshold)
+
+    X_collapsed = [collapse_whitespace_margins(x, z) for x, z in zip(X, X_threshold)]
+    X_collapsed_vert = [collapse_bottom_margins(x, z) for x, z in zip(X_collapsed, X_threshold)]
+    X_resized = resize_images(X_collapsed_vert)
+    print len(X_resized)
+
+    X_means = np.array(calc_lane_means(X_resized))
+    X_means = X_means[:,:,2]
+    print len(X_means), X_means[0].shape
+
+    clf = joblib.load('trained_classifier.pkl')
+    preds = clf.predict(X_means)
+
+    clear_data()
+    return preds

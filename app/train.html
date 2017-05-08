@@ -13,26 +13,26 @@
 </head>
 <body>
 
-    <h1>Classifier Training</h1>
+    <h1>Training</h1>
     <h5>1. Choose a JPG file with an image of Gel on which to train</h5>
-    <h5>2. Highlight first lane using the cursor</h5>
-    <h5>3. Hit 1 to label lane as Control Lane, 2 to label as Condition, adjust crop region as necessary</h5>
-    <h5>4. Repeat 2. and 3. for all lanes</h5>
-    <h5>5. Hit submit to upload these labeled training examples</h5><br>
+    <h5>2. Align lanes using rotation buttons, highlight first lane using the cursor</h5>
+    <h5>3. Hit 1 to label lane as Control Lane, 2 to label as Condition. Adjust crop region as necessary</h5>
+    <h5>4. Repeat steps 2 and 3 for all lanes</h5>
+    <h5>5. Select "Upload Training Lanes" to upload these labeled training examples</h5><br>
     <!--<h5>After uploading all training examples:</h5>-->
     <!--<h5>a. Upload new gel with lanes to automatically classify</h5>-->
     <!--<h5>b. Select the roi with lanes to classify</h5>-->
     <!--<h5>c. Hit classify to classify new lanes</h5>-->
 
-    <div id="gel-analysis__container">
+    <div id="upload-result"></div>
 
-        <div id="upload-result"></div>
+    <div id="gel-analysis__container">
 
         <div id="gel-analysis-upload">
 
             <div id="gel-analysis-form">
 
-                JPG gel image file, for training or testing:
+                JPG gel image file for training:
                 <input id="the-file" name="file" type="file" />
 
                 <div class="rotate-buttons">
@@ -46,7 +46,7 @@
                 <button onclick="cropper.setDragMode('move')">Move Mode</button>
 
                 <button onclick="uploadTrainingData()">Upload Training Lanes</button>
-                <button onclick="classifyLanes()">Classify Lanes</button>
+                <button onclick="sendTrainRequest()">Train On Existing Lanes</button>
 
             </div>
 

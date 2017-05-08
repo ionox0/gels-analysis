@@ -130,3 +130,27 @@ function uploadTrainingData(){
 
     }
 }
+
+
+function sendTrainRequest(){
+    $('#upload-result').text('Training model...');
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+
+            if (xhr.status === 200) {
+                var resp = JSON.parse(xhr.responseText);
+                console.log(resp);
+                var score_string = 'Train: ' + resp.train + ' Test: ' + resp.test;
+                $('#upload-result').text('Training Complete.\n' + score_string);
+            } else {
+                $('body').empty().append(xhr.responseText);
+                console.log("Error", xhr.statusText);
+            }
+
+        }
+    };
+    xhr.open('POST', '/fit_model', true);
+    xhr.send();
+}

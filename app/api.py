@@ -8,7 +8,8 @@ from flask import send_file
 from nocache import nocache
 
 
-from analyzer import analyze_gel
+from analyzer import analyze_gel, auto_classify_gel
+from train_parser import fit_and_save_model
 from training_data_uploader import create_train_images
 
 
@@ -26,12 +27,11 @@ app = Flask(__name__, static_url_path='', static_folder='.')
 def root():
     return app.send_static_file('index.html')
 
+
 @app.route('/result')
 @nocache
 def result():
     return app.send_static_file('labeled_image.jpg')
-
-
 
 
 @app.route('/upload_train_data', methods=['GET', 'POST'])
@@ -54,17 +54,50 @@ def upload_train_data_route():
     labels = json.loads(request.form['labels'])
 
     result = create_train_images(filename, rois, labels)
-
     return 'success'
 
 
-
-
-@app.route('/analyze', methods=['GET', 'POST'])
-def classify_route():
+@app.route('/fit_model', methods=['POST'])
+def fit_model_route():
     """
-    Flask route for abnormal band detection
-    :return: Json summary response
+    Flask route for fitting the classifier on the training images
+    :return:
+    """
+    train_score, test_score = fit_and_save_model()
+    scores = {
+        'train': train_score,
+        'test': test_score
+    }
+    return json.dumps(scores)
+
+
+@app.route('/auto_classify', methods=['POST'])
+def auto_classify_route():
+    """
+    Flask route for automatic abnormal band detection
+    :return: Labeled image
+    """
+    if 'file' not in request.files:
+        raise Exception('no file provided')
+
+    file = request.files['file']
+    if file:
+        # filename = secure_filename(file.filename)
+        src = os.getcwd() + '/uploaded_data/'
+        file.save(os.path.join(src, file.filename))
+
+    rois = json.loads(request.form['rois'])
+    preds = auto_classify_gel(file.filename, rois)
+    preds = json.dumps(list(preds))
+
+    return preds
+
+
+@app.route('/manual_classify', methods=['GET', 'POST'])
+def manual_classify_route():
+    """
+    Flask route for manual abnormal band detection
+    :return: Labeled image
     """
     if 'file' not in request.files:
         raise Exception('no file provided')
@@ -87,9 +120,6 @@ def classify_route():
 
     result_filename = analyze_gel(file.filename, rois, danger_zone, threshold)
 
-    # img = Image.open(result_filename)
-    # return serve_pil_image(img)
-
     return send_file(result_filename, mimetype='image/gif')
 
 
@@ -98,6 +128,7 @@ def serve_pil_image(pil_img):
     pil_img.save(img_io, 'JPEG', quality=70)
     img_io.seek(0)
     return send_file(img_io, mimetype='image/jpeg')
+
 
 def strtobool(val):
     """

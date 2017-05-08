@@ -25,8 +25,6 @@ function readURL(input) {
         };
         reader1.readAsDataURL(input.files[0]);
 
-
-
         // Display resized image
         var reader = new FileReader();
 
@@ -42,10 +40,6 @@ function readURL(input) {
             img.attr('src', e.target.result);
         };
         reader.readAsDataURL(input.files[0]);
-
-
-
-
 
         // setRoiListeners();
 
@@ -129,35 +123,11 @@ function rotateBase64Image(base64data) {
         $('#gel-image').attr('src', canvas.toDataURL());
         document.body.removeChild(canvas);
     };
-
 }
 
 
-// var rois = [];
-// function setRoiListeners(){
-//     var img_sel = $('#gel-image');
-//     var roi = {};
-//
-//     img_sel.mousedown(function(e) {
-//         var offset = $(this).offset();
-//         roi.x_start = Math.floor(e.pageX - offset.left);
-//         roi.y_start = Math.floor(e.pageY - offset.top);
-//         event.preventDefault();
-//         console.log("down", roi);
-//     });
-//
-//     img_sel.mouseup(function(e) {
-//         var offset = $(this).offset();
-//         roi.x_end = Math.floor(e.pageX - offset.left);
-//         roi.y_end = Math.floor(e.pageY - offset.top);
-//         console.log("up", roi);
-//         rois.push(roi);
-//         roi = {};
-//     });
-// }
-
 function analyze(){
-    $('#gel-analysis-result').text('Analyzing...');
+    $('#gel-analysis-result').text('Classifying Lanes Using Manual Parameters...');
 
     var fileInput = document.getElementById('the-file');
     var file = fileInput.files[0];
@@ -175,7 +145,6 @@ function analyze(){
         if (xhr.readyState == XMLHttpRequest.DONE) {
 
             if (xhr.status === 200) {
-
                 // convert to Base64
                 var imgsrc = '/result';
                 // var imgsrc = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(xhr.responseText)));
@@ -197,6 +166,42 @@ function analyze(){
 
         }
     };
-    xhr.open('POST', '/analyze', true);
+    xhr.open('POST', '/manual_classify', true);
+    xhr.send(formData);
+}
+
+
+function showManualSettings() {
+    $('.manual-classification-settings').toggle();
+}
+
+
+function autoClassify() {
+    $('#gel-analysis-result').text('Classifying Lanes Using Trained Model...');
+
+    var fileInput = document.getElementById('the-file');
+    var file = fileInput.files[0];
+    var formData = new FormData();
+
+    colnames = $('#the-column-names').val();
+    formData.append('file', file);
+    formData.append('rois', JSON.stringify(rois));
+
+    var xhr = new XMLHttpRequest();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+
+            if (xhr.status === 200) {
+                var resp = JSON.parse(xhr.responseText);
+                console.log(resp);
+                $('#gel-analysis-result').text('Result Labels: ' + resp);
+            } else {
+                $('body').empty().append(xhr.responseText);
+                console.log("Error", xhr.statusText);
+            }
+
+        }
+    };
+    xhr.open('POST', '/auto_classify', true);
     xhr.send(formData);
 }
