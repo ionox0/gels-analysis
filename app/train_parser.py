@@ -1,9 +1,9 @@
 import os
-import cv2
 import pickle
 import numpy as np
 import pandas as pd
 from skimage import data
+from skimage.transform import resize
 from skimage.filters import threshold_otsu, threshold_adaptive
 
 # Features
@@ -35,7 +35,7 @@ from sklearn.externals import joblib
 
 train_image_files = [x for x in os.listdir('../app/train_images/') if '.jpg' in x]
 
-input_shape = (233, 60, 4)
+input_shape = (233, 50, 4)
 input_dim = (50, 233)
 num_classes = 2
 
@@ -98,7 +98,7 @@ def collapse_bottom_margins(img, img_thresholded):
 def resize_images(imgs):
     imgs_resized = []
     for img in imgs:
-        img_resized = cv2.resize(img, input_dim)
+        img_resized = resize(img, input_dim)
         imgs_resized.append(img_resized)
     return np.array(imgs_resized)
 
