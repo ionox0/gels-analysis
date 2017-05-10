@@ -50,7 +50,7 @@ def get_training_data():
             train_labels.append(1)
         else:
             train_labels.append(0)
-    return np.asarray(train_images), np.asarray(train_labels)
+    return train_images, train_labels
 
 
 def do_threshold(img):
@@ -176,13 +176,11 @@ def do_fit_and_save_model(pipe, X_final, y_final):
 
 def fit_and_save_model():
     X, y = get_training_data()
-    print X.shape, y.shape
 
     y_df = pd.DataFrame(y)
     print y_df[0].value_counts()
 
     X_threshold = [do_threshold(x).astype(np.uint16) for x in X]
-    X_threshold = np.array(X_threshold)
     print len(X_threshold)
 
     X_collapsed = [collapse_whitespace_margins(x, z) for x, z in zip(X, X_threshold)]
