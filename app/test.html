@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+            <title>Gels Analysis</title>
+            <!--<link rel="icon" href="./img/t.png">-->
+            <link rel="stylesheet" href="css/test.css">
+
+            <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="vendor/jquery.imgareaselect-0.9.10/css/imgareaselect-default.css" />
+            <script type="text/javascript" src="vendor/jquery.imgareaselect-0.9.10/scripts/jquery.imgareaselect.pack.js"></script>
+    </head>
+    <body>
+        <h1>Testing</h1>
+        <a href="/train.html">Training</a>
+        <h5>1. Upload a JPG with an image of Gel to be analyzed</h5>
+        <h5>2. Use cursor to select region with lanes</h5>
+        <h5>3A. Use "Auto Classify" to classify using an existing <a href="/train.html">trained classifier</a></h5>
+        <h5>3B. Manually enter settings at which to detect bands</h5>
+
+        <div id="gel-analysis-result"></div>
+
+        <div id="gel-analysis__container">
+
+            <div id="gel-analysis-upload">
+
+                <div id="gel-analysis-form">
+
+                    JPG gel image file
+                    <input id="the-file" name="file" type="file" />
+
+                    <button onclick="callRotateImage()">Rotate Image</button>
+                    <button onclick="autoClassify()">Auto Classify</button>
+                    <button onclick="showManualSettings()">Manual Classification</button>
+
+                    <div class="manual-classification-settings">
+                        <div class="upload-setting-item__container">
+                            Upper Y bound at which to search for band (in px, relative to top of selected ROI):
+                            <input id="min-y-value" type="number" value="0" />
+                        </div>
+
+                        <div class="upload-setting-item__container">
+                            Lower Y bound at which to search for band (in px, relative to top of selected ROI):
+                            <input id="max-y-value" type="number" value="130" />
+                        </div>
+
+                        <div class="upload-setting-item__container">
+                            Threshold level at which to detect bands in the specified region:
+                            <input id="threshold" type="number" value="0.1" />
+                        </div>
+
+                        <button onclick="analyze()">Manual Classify</button>
+                    </div>
+
+                </div>
+
+                <img id="gel-image" src="#" alt="preview" />
+            </div>
+
+        </div>
+
+        <script id="gel-analysis-template" type="text/x-jquery-tmpl">
+            {{ result }}
+        </script>
+
+        <script src="https://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.js"></script>
+        <script src="js/test.js"></script>
+
+    </body>
+
+</html>

@@ -1,0 +1,55 @@
+body {
+    background: aliceblue;
+    font-family: 'Ubuntu', 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva', 'Verdana', sans-serif;
+}
+
+h5 {
+    font-weight: normal;
+}
+
+#gel-analysis__container {
+    padding: 20px;
+    background: linen;
+}
+
+#gel-analysis-upload {
+    display: inline-block;
+    vertical-align: top;
+}
+
+#gel-analysis-form {
+    display: inline-block;
+    width: 35%;
+    vertical-align: top;
+}
+
+.manual-classification-settings {
+    display: none;
+}
+
+.cropper-container {
+    display: inline-block;
+    width: 60% !important;
+}
+
+#the-file {
+
+}
+
+#gel-image {
+    width: 500px;
+}
+
+.upload-setting-item__container {
+
+}
+
+#gel-analysis-result {
+    display: inline-block;
+}
+
+#gel-analysis-result img {
+    width: 500px;
+}
+
+
