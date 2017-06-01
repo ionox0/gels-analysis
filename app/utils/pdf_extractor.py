@@ -8,9 +8,8 @@ from os import path
 
 warnings.filterwarnings("ignore")
 
-
+number = 0
 def new_extract_images_from_pdf(filename, num_pages, dest_dir):
-    number = 0
 
     def recurse(page, xObject):
         global number
@@ -97,3 +96,7 @@ def extract_images_from_pdf(filename):
 
         njpg += 1
         i = iend
+
+
+if __name__ == '__main__':
+    new_extract_images_from_pdf('../../data/GelsNov2016.pdf', 162, '../../data/gels_nov_2016/')

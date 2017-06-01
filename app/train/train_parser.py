@@ -16,7 +16,7 @@ from sklearn.cross_validation import train_test_split
 
 from sklearn.externals import joblib
 
-from ..utils.preprocessing import do_threshold, collapse_whitespace_margins, collapse_bottom_margins, resize_images, calc_lane_means
+from utils.preprocessing import do_threshold, collapse_whitespace_margins, collapse_bottom_margins, resize_images, calc_lane_means
 
 
 

@@ -47,10 +47,10 @@ def collapse_bottom_margins(img, img_thresholded):
 
 
 # Resize images
-def resize_images(imgs):
+def resize_images(imgs, dim):
     imgs_resized = []
     for img in imgs:
-        img_resized = resize(img, input_dim)
+        img_resized = resize(img, dim)
         imgs_resized.append(img_resized)
     return np.asarray(imgs_resized)
 
@@ -60,22 +60,19 @@ def calc_lane_means(lanes):
     lanes_means = []
     for lane in lanes:
         lane_mean = lane.mean(axis=1)
-        # Just take the blue channels
-        lanes_means.append(lane_mean[:, 2])
+        if lane_mean.ndim == 3:
+            # Just take the blue channels
+            lanes_means.append(lane_mean[:, 2])
+        else:
+            lanes_means.append(lane_mean)
 
     return lanes_means
 
 
 def smooth_lanes(X, N):
-    # plt.figure(figsize=(15, 6))
-    # plt.plot(X_means[0])
-
     smootheds = []
     for n in N:
         smoothed = [pd.rolling_mean(x, n)[n - 1:] for x in X]
         smootheds.append(smoothed)
-        # plt.plot(smoothed[0])
-        # plt.legend()
 
-    # plt.show()
     return smootheds

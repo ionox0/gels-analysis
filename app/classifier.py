@@ -8,10 +8,9 @@ import numpy as np
 # from matplotlib import pyplot as plt
 
 from skimage import data, filters, transform
-from skimage.filters import threshold_otsu
 from sklearn.externals import joblib
 
-from utils.preprocessing import collapse_whitespace_margins, collapse_bottom_margins, resize_images
+from utils.preprocessing import *
 from utils.pdf_extractor import extract_images_from_pdf
 
 
@@ -76,12 +75,6 @@ def extract_roi(image, roi_metadata):
 def calc_img_vertical_sum(img):
     vert_sum = img.sum(axis=0)
     return vert_sum
-
-
-def do_threshold(img):
-    thresh = threshold_otsu(img)
-    binary = img > thresh
-    return binary
 
 
 def isolate_lanes(img, img_orig=None):
@@ -193,7 +186,7 @@ def auto_classify_gel(filename, rois):
 
     X_collapsed = [collapse_whitespace_margins(x, z) for x, z in zip(X, X_threshold)]
     X_collapsed_vert = [collapse_bottom_margins(x, z) for x, z in zip(X_collapsed, X_threshold)]
-    X_resized = resize_images(X_collapsed_vert)
+    X_resized = resize_images(X_collapsed_vert, dim = (60, 233))
     print len(X_resized)
 
     X_means = np.array(calc_lane_means(X_resized))

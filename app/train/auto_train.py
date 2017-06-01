@@ -64,9 +64,12 @@ def extract_lanes_from_marker(img, markers):
     return lanes
 
 
-def plot_lanes(lanes):
+def plot_lanes(lanes, titles):
     count = len(lanes)
     plt.figure(figsize=(20, 20))
+    plt.axis('off')
+    plt.xticks([])
+    plt.yticks([])
     for i, lane in enumerate(lanes):
         cols = 40
         rows = int(count / cols) + 1

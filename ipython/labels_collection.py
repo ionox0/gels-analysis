@@ -1,67 +1,83 @@
 
 # coding: utf-8
 
-# In[116]:
+# In[211]:
 
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 pd.options.display.max_columns = 9999
 pd.options.display.max_rows = 9999
 
 
-# In[43]:
+# In[212]:
 
+# Read Excel File
 labels_full = pd.read_excel('../data/2012-2017_labels.xlsx', sheetname='2016')
+
+# Drop Missing all
 labels_full = labels_full.dropna(axis=1, how='all')
-labels_full.shape
-
-
-# In[ ]:
-
-serum_cols = labels_full.columns.str.contains('SPEP')
-cols = labels_full.columns[serum_cols]
-spreadsheet_top = labels_full.ix[:30, cols]
-
-
-# In[150]:
-
-labels_left = spreadsheet_top.ix[:,'SPEP':'SPEP.296']
-
-
-# In[148]:
-
-april_mask = labels_left.ix[0, :]
-
-
-# In[149]:
-
-april_mask = pd.to_datetime(april_mask)
-april_mask = april_mask.isin(pd.date_range('2016-04-01', '2016-04-30'))
-april_data = labels_left[april_mask.index[april_mask]]
-
-
-# In[151]:
 
 # Why is 4-25 2, 3, 0, 4?
 # What does '0' signify?
 # What does 'o' signify?
-april_data
 
 
-# In[181]:
+# In[221]:
 
-april_labels = {}
-for date in april_data.ix[0,:]:
-    mask = april_data.ix[0] == date
-    column = april_data.ix[:, mask.index[mask]]
-    dz = column.dropna()
-    vals = dz.index.values.tolist()
-    vals.remove(u'DATE')
-    date_str = date.strftime('%Y-%m-%d')
-    april_labels[date_str] = vals
+labels_full.ix[:, 'SPEP.260']
+
+
+# In[222]:
+
+def get_labels(start_date, end_date):
+    labels = labels_full.copy()
+    # Take SPEP Cols, not IFE
+    serum_cols = labels.columns.str.contains('SPEP')
+    cols = labels.columns[serum_cols]
+
+    labels = labels.reset_index()
+    # Take just PEP #1 for each date (todo - no hard coding plz)
+    labels = labels.loc[:35, cols]
+    # Use DATE row as column indices
+    labels.columns = pd.to_datetime(labels.loc[0,:], errors='coerce')
+    # Drop DATE, and Gel # rows (todo - ditto)
+    labels.drop(labels.index[:2], inplace=True)
     
-april_labels
+    # shift index to align with first control lane (#2)
+    ctrl_lane_idx = labels.iloc[:,1].first_valid_index()
+    shift_val = ctrl_lane_idx - 2
+    labels = labels.set_index(labels.index - shift_val)
+    
+    labels = labels.loc[:,start_date : end_date]
+    return labels
+
+
+# In[214]:
+
+def get_dz_labels(labels):
+    dz_labels = {}
+    for col in labels.columns:
+        date = col.strftime('%Y-%m-%d')
+        inds = labels[col].index.values
+        dz = inds[labels[col].notnull().tolist()].tolist()
+        dz_labels[date] = dz
+    return dz_labels
+
+
+# In[223]:
+
+april_2016_labels = get_labels(datetime(2016, 4, 1), datetime(2016, 4, 30))
+april_2016_dz_labels = get_dz_labels(april_2016_labels)
+
+nov_2016_labels = get_labels(datetime(2016, 11, 1), datetime(2016, 11, 30))
+nov_2016_dz_labels = get_dz_labels(nov_2016_labels)
+
+
+# In[224]:
+
+nov_2016_labels
 
 
 # In[ ]:
