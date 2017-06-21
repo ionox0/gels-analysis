@@ -1,9 +1,8 @@
 
 # coding: utf-8
 
-# In[237]:
+# In[1]:
 
-# Import the modules
 import cv2
 import scipy
 import pprint
@@ -17,21 +16,6 @@ from skimage import data
 from sklearn.externals import joblib
 
 import keras
-from keras import backend as K
-from keras import applications
-from keras.models import Sequential
-from keras.datasets import mnist
-from keras.layers import Dense, Dropout, Flatten, Activation, BatchNormalization
-from keras.layers import Conv2D, MaxPooling2D
-from keras.utils.np_utils import to_categorical
-from keras.applications.vgg16 import preprocess_input
-from keras.preprocessing import image
-from keras.utils import to_categorical
-
-from sklearn.cross_validation import train_test_split
-from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-
-
 from matplotlib import pyplot as plt
 get_ipython().magic(u'matplotlib auto')
 
@@ -41,7 +25,7 @@ l = 256
 np.random.seed(1)
 
 
-# In[4]:
+# In[2]:
 
 clf, pp = joblib.load("digits_cls.pkl")
 model = keras.models.load_model('./digits_cnn')
@@ -49,7 +33,9 @@ model = keras.models.load_model('./digits_cnn')
 imgs = [1,6,12,21,41,42,51,52,56,83,84,89,90,96,97,106,123,131,136,152,153,156,157] #7, 22
 
 
-# In[139]:
+# ### HOG Features
+
+# In[456]:
 
 def calc_hog_feats(rect, roi):
     # Make the rectangular region around the digit
@@ -71,7 +57,9 @@ def calc_hog_feats(rect, roi):
     return roi_hog_fd
 
 
-# In[265]:
+# ### Sorting ROIs
+
+# In[520]:
 
 from collections import deque
 
@@ -81,9 +69,11 @@ def sort_rects(rects_ctrs):
     result = []
     for rect in rects_sort:
         # Filter to only rects with overlap of > 1/3 of target height
-        rects_sort_filt = filter(lambda x: calc_overlap(x[0], rect[0]) > (x[0][3] / 3.0), rects_sort)
+        rects_sort_filt = filter(lambda x: calc_overlap(x[0], rect[0]) > (x[0][3] / 3.0) and abs(x[0][3] - rect[0][3]) < (x[0][3]), rects_sort)
+        rects_sort_filt = sorted(rects_sort_filt, key=lambda r: r[0][0])
         result += rects_sort_filt
-        rects_sort = filter(lambda x: x not in rects_sort_filt, rects_sort)
+        for rect_sorted in rects_sort_filt:
+            rects_sort.remove(rect_sorted)
         
     return zip(*result)
     
@@ -103,9 +93,57 @@ def calc_overlap(rect_1, rect_2):
     return overlap
 
 
-# In[316]:
+# ### Color thresholding
 
-def extract_numbers(fname, thresh=80, blur=False):
+# In[459]:
+
+image = scipy.misc.imread(filenames[0])
+cv2.threshold(image, 180, 255, cv2.THRESH_BINARY)
+
+# plt.imshow(image[800:802,600:602])
+
+# [820:822,655:657] # blue roi
+# [800:802,600:602] # black roi
+
+# plt.imshow(image[580:880,440:980])
+#plt.show()
+
+
+# In[384]:
+
+image[800:802,600:602]
+
+
+# In[460]:
+
+image = scipy.misc.imread(filenames[0])
+
+boundaries = {
+#     ([30, 15, 20], [50, 40, 60]), # black ink
+    'black': ([0, 0, 0], [190, 190, 190]), # black ink
+    'blue': ([50, 31, 4], [85, 120, 180]), # blue dye
+}
+
+colors = []
+for bound in boundaries.keys():
+    lower, upper = boundaries[bound]
+    lower = np.array(lower, dtype = "uint8")
+    upper = np.array(upper, dtype = "uint8")
+
+    mask = cv2.inRange(image, lower, upper)
+    output = cv2.bitwise_and(image, image, mask = mask)
+    colors.append(output)
+
+plt.imshow(np.hstack(colors))
+
+
+# ### Numbers xtract fn
+
+# In[525]:
+
+import pdb
+
+def extract_numbers(fname, thresh=80, blur=True):
     result = []
     
     im = scipy.misc.imread(fname)#[580:880,440:980]
@@ -118,7 +156,14 @@ def extract_numbers(fname, thresh=80, blur=False):
         im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
 
     # Threshold the image
-    ret, im_th = cv2.threshold(im_gray, thresh, 255, cv2.THRESH_BINARY)
+    ret, im_th_all_colors = cv2.threshold(im_gray, thresh, 255, cv2.THRESH_BINARY)
+    # Or try with black threshold
+    lower, upper = boundaries['black']
+    lower = np.array(lower, dtype = "uint8")
+    upper = np.array(upper, dtype = "uint8")
+    mask = cv2.inRange(im, lower, upper)
+    im_th = cv2.bitwise_and(im, im, mask = mask).astype(np.uint8)
+    im_th = cv2.cvtColor(im_th, cv2.COLOR_BGR2GRAY)
 
     # Find contours in the image
     ctrs = cv2.findContours(im_th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -145,8 +190,8 @@ def extract_numbers(fname, thresh=80, blur=False):
         # Skip short artifacts
         if height < 10: continue
 
-        im_th = im_th.astype(np.float64)
-        im_roi = im_th[y_start : y_start + height, x_start : x_start + width]
+        im_th_all_colors = im_th_all_colors.astype(np.float64)
+        im_roi = im_th_all_colors[y_start : y_start + height, x_start : x_start + width]
 
         mask = np.zeros((height, width)).astype(np.uint8)
         mask = cv2.drawContours(mask, sorted_ctrs, i, (255, 255, 255), cv2.FILLED, offset=(-x_start, -y_start))
@@ -162,7 +207,6 @@ def extract_numbers(fname, thresh=80, blur=False):
         else:
             roi_pad = roi
         roi_pad = np.pad(roi_pad, (5, 5), 'constant', constant_values=(0, 0))
-            
 
         roi_resized = cv2.resize(roi_pad, (28,28), interpolation=cv2.INTER_NEAREST)
         
@@ -194,8 +238,13 @@ def extract_numbers(fname, thresh=80, blur=False):
 #         class_prob = np.max(prob)
 #         if class_prob > .9:
 #         probs.append(class_prob)
+
+        if nbr == 9:
+            continue
+#             pdb.set_trace()
+            
         probs.append(0)
-        result.append((roi_resized, nbr))
+        result.append((roi_resized, nbr))   
 
     date_possibs.append(cur_date_possib)
     
@@ -205,21 +254,24 @@ def extract_numbers(fname, thresh=80, blur=False):
     return result, date_possibs, probs
 
 
-# In[317]:
+# In[527]:
 
-filenames = ['../data/gels_nov_2016/Im{} - p. {}.png'.format(i, i) for i in imgs][2:3]
+filenames = ['../data/gels_nov_2016/Im{} - p. {}.png'.format(i, i) for i in imgs][8:9]
 results = [extract_numbers(f) for f in filenames]
 res = [x[0] for x in results]
 all_date_possibs = [x[1] for x in results]
 probs = [x[2] for x in results]
 
 
-# In[207]:
+# In[480]:
 
-filenames
+plt.imshow(scipy.misc.imread(filenames[0]))
+plt.show()
 
 
-# In[24]:
+# ### Plot res
+
+# In[464]:
 
 def plot_things(things, labels):
     count = len(things)
@@ -240,43 +292,7 @@ def plot_things(things, labels):
         plt.imshow(thing)
 
 
-# In[373]:
-
-image = scipy.misc.imread(filenames[0])
-cv2.threshold(image, 180, 255, cv2.THRESH_BINARY)
-# plt.imshow(image[820:822,655:657])
-plt.imshow(image[580:880,440:980])
-plt.show()
-
-
-# In[367]:
-
-image[820:822, 655:657]
-
-
-# In[371]:
-
-image = scipy.misc.imread(filenames[0])
-
-boundaries = [
-    ([0, 0, 0], [50, 100, 150]), # black ink
-    ([50, 31, 4], [90, 130, 190]), # blue dye
-]
-
-colors = []
-for bound in boundaries:
-    lower, upper = bound
-    lower = np.array(lower, dtype = "uint8")
-    upper = np.array(upper, dtype = "uint8")
-
-    mask = cv2.inRange(image, lower, upper)
-    output = cv2.bitwise_and(image, image, mask = mask)
-    colors.append(output)
-
-plt.imshow(np.hstack(colors))
-
-
-# In[310]:
+# In[512]:
 
 rois_flat = [x[0] for sub in res for x in sub]
 nbrs_flat = [x[1] for sub in res for x in sub]
@@ -284,17 +300,14 @@ probs_flat = [x for sub in probs for x in sub]
 
 titles = ['{} {:.0%}'.format(x, y) for x, y in zip(nbrs_flat, probs_flat)]
 
-i = 0
-s = slice(i, i + 50)
+i = 50
+s = slice(i, i + 1000)
 plot_things(rois_flat[s], titles[s])
 
 
-# In[295]:
+# ### Search for date
 
-len(rois_flat), len(all_date_possibs)
-
-
-# In[305]:
+# In[528]:
 
 import re
 from datetime import datetime
@@ -323,53 +336,6 @@ dates = [datetime(int('20' + d[2]), int(d[0]), int(d[1])) if d else None for d i
 dates = [d.strftime('%Y-%m-%d') if d else None for d in dates]
 
 dates
-
-
-# In[ ]:
-
-from skimage.feature import ORB, match_descriptors
-from skimage.transform import ProjectiveTransform, AffineTransform
-from skimage.measure import ransac
-
-from skimage.color import gray2rgb
-from skimage.exposure import rescale_intensity
-from skimage.transform import warp
-from skimage.transform import SimilarityTransform
-
-
-# In[ ]:
-
-def add_alpha(image, background=-1):
-    """Add an alpha layer to the image.
-
-    The alpha layer is set to 1 for foreground
-    and 0 for background.
-    """
-    rgb = gray2rgb(image)
-    alpha = (image != background)
-    return np.dstack((rgb, alpha))
-
-
-# In[ ]:
-
-image0_alpha = add_alpha(im[:,:,2])
-image1_alpha = add_alpha(im_th)
-
-merged = (im[:,:,1] + im_th)
-alpha = merged[..., 3]
-
-# The summed alpha layers give us an indication of
-# how many images were combined to make up each
-# pixel. Divide by the number of images to get
-# an average.
-merged /= np.maximum(alpha, 1)[..., np.newaxis]
-
-plt.imshow(merged)
-
-
-# In[ ]:
-
-plt.imshow(im)
 
 
 # In[ ]:

@@ -1,5 +1,4 @@
 
-# Import the modules
 import cv2
 from sklearn.externals import joblib
 from sklearn import datasets
@@ -8,7 +7,6 @@ from sklearn.svm import SVC
 from sklearn import preprocessing
 import numpy as np
 from collections import Counter
-
 
 import keras
 from keras import applications
@@ -21,13 +19,12 @@ from keras.utils.np_utils import to_categorical
 
 from keras.applications.vgg16 import preprocess_input
 from keras.preprocessing import image
-from keras.utils import to_categorical
 
 from sklearn.cross_validation import train_test_split
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
 
-
 from matplotlib import pyplot as plt
+%matplotlib auto
 
 # Load the dataset
 dataset = datasets.fetch_mldata("MNIST Original")
@@ -88,10 +85,9 @@ def get_model():
     return model
 
 
-
 batch_size = 128
 num_classes = 10
-epochs = 12
+epochs = 7
 
 model = get_model()
 
@@ -103,29 +99,53 @@ features = np.expand_dims(features.reshape(70000,28,28), axis=3)
 labels = to_categorical(np.array(dataset.target, 'int'))
 
 history_bn = model.fit(features, labels,
-      batch_size=100,
-      epochs=3)
+      batch_size=batch_size,
+      epochs=epochs)
 
 # Save the classifier
 model.save(filepath='./digits_cnn')
 
-%matplotlib auto
-# clf, pp = joblib.load("digits_cls.pkl")
+plt.imshow(np.array(dataset.data, 'int16'))
+
+from skimage.filters import threshold_otsu
+
+def do_threshold(img):
+    thresh = threshold_otsu(img)
+#     thresh = threshold_adaptive(image, 15, 'mean')
+    binary = img > thresh
+    return np.array(binary)
+
+im = cv2.imread('../data/gels_nov_2016/Im{} - p. {}.png'.format(41, 41))
+# Threshold to get just the digits
+# img_thresholded = do_threshold(im)
+img_thresholded = im[:,:,0] < 80
+
+print(img_thresholded.shape)
+
+img_thresholded = img_thresholded[700:900,280:900]
+reg = im[700:900,280:900]
+im = img_thresholded.astype(np.uint8)
+
+im.shape
+
+clf, pp = joblib.load("digits_cls.pkl")
+model = keras.models.load_model('./digits_cnn')
 
 imgs = [1,6,7,12,21,22,41,42,51,52,56,83,84,89,90,96,97,106,123,131,136,152,153,156,157]
 
-for i in [131]:
-    im = cv2.imread('../data/gels_nov_2016/Im{} - p. {}.png'.format(i, i))
+for i in [41]:
+#     im = cv2.imread('../data/gels_nov_2016/Im{} - p. {}.png'.format(i, i))
     
-    # Convert to grayscale and apply Gaussian filtering
-    im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
-    im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
+#     # Convert to grayscale and apply Gaussian filtering
+#     im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+#     im_gray = cv2.GaussianBlur(im_gray, (5, 5), 0)
 
-    # Threshold the image
-    ret, im_th = cv2.threshold(im_gray, 90, 255, cv2.THRESH_BINARY_INV)
+#     # Threshold the image
+#     ret, im_th = cv2.threshold(im_gray, 90, 255, cv2.THRESH_BINARY_INV)
 
     # Find contours in the image
-    ctrs = cv2.findContours(im_th.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    im_th = im.copy().astype(np.uint8)
+    ctrs = cv2.findContours(im_th, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
     # Get rectangles contains each contour
     rects = [cv2.boundingRect(ctr) for ctr in ctrs[1]]
@@ -133,8 +153,9 @@ for i in [131]:
     # For each rectangular region, calculate HOG features and predict
     # the digit using classifier.
     for rect in rects:
+        print('here')
         # Draw the rectangles
-#         cv2.rectangle(im, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 255, 0), 3)
+        cv2.rectangle(im, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (255, 255, 255), 1)
 
         # Make the rectangular region around the digit
         leng = int(rect[3] * 1.6)
@@ -153,17 +174,109 @@ for i in [131]:
         
         roi_cnn = np.expand_dims(roi, axis=2)
         # Choose model here
-        nbr = model.predict(np.array([roi_cnn])) # or roi_hog
-        nbr = [np.argmax(nbr)]
+#         nbr = model.predict(np.array([roi_cnn]))
+        nbr = clf.predict(roi_hog_fd)
+#         nbr = [np.argmax(nbr)]
 
-        cv2.putText(im, str(int(nbr[0])), (rect[0], rect[1]), cv2.FONT_ITALIC, 1, (0, 255, 255), 3)
+        cv2.putText(im, str(int(nbr[0])), (rect[0], rect[1]), cv2.FONT_ITALIC, 1, (255, 255, 255), 3)
         # (img, text, org, fontFace, fontScale, color[, thickness[, lineType[, bottomLeftOrigin]]]) → None
 
     plt.imshow(im)
+#     plt.imshow(reg)
     plt.show()
+
+plt.imshow(reg)
+
+plt.imshow(im)
 
 np.expand_dims(features.reshape(70000,28,28), axis=3).shape
 
-model.summary()
+img = cv2.imread('../data/gels_nov_2016/Im2 - p. 2.png', cv2.IMREAD_GRAYSCALE)
+
+# img = img[:,:,2] < 100
+# img = img < 60
+# img = img.astype(np.uint8)
+
+from skimage import img_as_ubyte
+
+img = img_as_ubyte(img)
+
+mser = cv2.MSER_create()
+mser_areas = mser.detect(img)
+
+for area in mser_areas:
+    pt = area.pt
+    x = int(pt[0])
+    y = int(pt[1])
+    size = int(area.size)
+    cv2.rectangle(img, (x - size, y - size), (x + size, y + size), (255, 255, 255), 1)
+    
+plt.imshow(img)
+
+mser = cv2.MSER_create()
+mser_areas = mser.detect(img)
+
+regions, _ = mser.detectRegions(img)
+hulls = [cv2.convexHull(p.reshape(-1, 1, 2)) for p in regions]
+
+cv2.polylines(img, hulls, 1, (255, 255, 255))
+
+plt.imshow(img)
+
+roi = img[hulls[0]]
+print(roi.shape)
+roi = cv2.resize(roi, (28,28))
+# print(roi.shape)
+# model.predict(roi)
+
+import scipy
+from scipy import ndimage
+import matplotlib.pyplot as plt
+
+fname='../data/gels_nov_2016/Im{} - p. {}.png'.format(41, 41)
+blur_radius = 0.2
+threshold = 50
+
+img = scipy.misc.imread(fname)[700:900,280:900] # gray-scale image
+print(img.shape)
+
+# smooth the image (to remove small objects)
+imgf = ndimage.gaussian_filter(img, blur_radius)
+threshold = 200
+
+# find connected components
+labeled, nr_objects = ndimage.label(imgf > threshold) 
+print "Number of objects is %d " % nr_objects
+
+plt.imshow(labeled.astype(float))
+
+plt.show()
+
+from skimage import measure
+try:
+    from skimage import filters
+except ImportError:
+    from skimage import filter as filters
+import matplotlib.pyplot as plt
+import numpy as np
+import scipy
+
+
+fname='../data/gels_nov_2016/Im{} - p. {}.png'.format(41, 41)
+n = 12
+l = 256
+np.random.seed(1)
+
+im = scipy.misc.imread(fname)[700:900,280:900]
+im = im.astype(np.float32)
+im = im[:,:,0]
+blobs = im > 0.7 * im.mean()
+blobs = blobs.astype(np.float32)
+
+all_labels = measure.label(blobs).astype(np.float32)
+blobs_labels = measure.label(blobs, background=0).astype(np.float32)
+plt.imshow(blobs_labels)
+
+im = im.astype(np.uint8)
 
 

@@ -1,9 +1,8 @@
 
 # coding: utf-8
 
-# In[23]:
+# In[2]:
 
-# Import the modules
 import cv2
 from sklearn.externals import joblib
 from sklearn import datasets
@@ -12,7 +11,6 @@ from sklearn.svm import SVC
 from sklearn import preprocessing
 import numpy as np
 from collections import Counter
-
 
 import keras
 from keras import applications
@@ -25,11 +23,9 @@ from keras.utils.np_utils import to_categorical
 
 from keras.applications.vgg16 import preprocess_input
 from keras.preprocessing import image
-from keras.utils import to_categorical
 
 from sklearn.cross_validation import train_test_split
 from sklearn.linear_model import LogisticRegression, LogisticRegressionCV
-
 
 from matplotlib import pyplot as plt
 get_ipython().magic(u'matplotlib auto')
@@ -37,7 +33,7 @@ get_ipython().magic(u'matplotlib auto')
 
 # ### https://arxiv.org/pdf/1702.00723.pdf
 
-# In[24]:
+# In[4]:
 
 # Load the dataset
 dataset = datasets.fetch_mldata("MNIST Original")
@@ -72,7 +68,7 @@ joblib.dump((clf, pp), "digits_cls.pkl", compress=3)
 
 # ### CNN
 
-# In[27]:
+# In[ ]:
 
 def get_model():
     model = Sequential()
