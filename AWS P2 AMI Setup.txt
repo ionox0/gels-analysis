@@ -1,0 +1,144 @@
+Starting from:
+Ubuntu 14.014 Server, amd64
+30 GB SSD EBS storage
+ubuntu/images/hvm-ssd/ubuntu-trusty-14.04-amd64-server-20170405 (ami-772aa961)
+
+
+
+
+sudo apt-get update 
+sudo apt-get -y upgrade
+
+
+
+
+// CUDA Section (Cuda 8.0, CUDNN 5.1)
+wget https://developer.nvidia.com/compute/cuda/8.0/Prod2/local_installers/cuda-repo-ubuntu1404-8-0-local-ga2_8.0.61-1_amd64-deb
+sudo dpkg -i cuda-repo-ubuntu1404-8-0-local-ga2_8.0.61-1_amd64-deb
+sudo apt-get update
+sudo apt-get install cuda
+sudo reboot now
+nvidia-smi
+
+wget https://www.dropbox.com/s/z7lhzbqj5o39as7/cudnn-8.0-linux-x64-v5.1.tgz?dl=0 --should verify source...
+wget https://www.dropbox.com/s/g4ksm472p5n3go8/cudnn-8.0-linux-x64-v5.1.tgz?dl=0 --hosted by me
+// Actual source (requires auth):
+https://developer.nvidia.com/compute/machine-learning/cudnn/secure/v5.1/prod_20161129/8.0/cudnn-8.0-linux-x64-v5.1-tgz
+
+mv cudnn-8.0-linux-x64-v5.1.tgz\?dl\=0 cudnn-8.0-linux-x64-v5.1.tgz
+tar xvzf cudnn-8.0-linux-x64-v5.1.tgz
+sudo cp cuda/include/cudnn.h /usr/local/cuda/include
+sudo cp cuda/lib64/libcudnn* /usr/local/cuda/lib64
+sudo chmod a+r /usr/local/cuda/include/cudnn.h /usr/local/cuda/lib64/libcudnn*
+sudo reboot now
+
+sudo apt-get install libcupti-dev
+
+echo 'export CUDA_HOME=/usr/local/cuda
+export CUDA_ROOT=/usr/local/cuda
+export PATH=$PATH:$CUDA_ROOT/bin:$HOME/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CUDA_ROOT/lib64
+' >> ~/.bashrc
+
+
+
+
+// Need pip
+sudo apt-get install python-pip
+
+
+
+
+// TensorFlow Section (Version 1.2.0, Python 2.7)
+sudo apt-get install python2.7-dev
+
+export TF_BINARY_URL=https://storage.googleapis.com/tensorflow/linux/gpu/tensorflow_gpu-1.2.0-cp27-none-linux_x86_64.wh
+pip install --ignore-installed --upgrade $TF_BINARY_URL
+
+// Check installation, should say:
+2017-06-22 16:31:23.807875: I tensorflow/core/common_runtime/gpu/gpu_device.cc:940] Found device 0 with properties: 
+name: Tesla K80
+major: 3 minor: 7 memoryClockRate (GHz) 0.8235
+pciBusID 0000:00:1e.0
+Total memory: 11.17GiB
+Free memory: 11.11GiB
+2017-06-22 16:31:23.807928: I tensorflow/core/common_runtime/gpu/gpu_device.cc:961] DMA: 0 
+2017-06-22 16:31:23.807944: I tensorflow/core/common_runtime/gpu/gpu_device.cc:971] 0:   Y 
+2017-06-22 16:31:23.807967: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1030] Creating TensorFlow device (/gpu:0) -> (device: 0, name: Tesla K80, pci bus id: 0000:00:1e.0)
+
+
+
+
+// Jupyter Section
+sudo apt-get install ipython
+sudo pip2 install jupyter // Should not use sudo...
+
+// Configure Jupyter (https://blog.keras.io/running-jupyter-notebooks-on-gpu-on-aws-a-starter-guide.html)
+mkdir ssl
+cd ssl
+jupyter notebook --generate-config
+
+// In python shell:
+from IPython.lib import passwd
+passwd()
+exit
+
+// Insert at beginning of vi ~/.jupyter/jupyter_notebook_config.py
+c = get_config()  # get the config object
+c.NotebookApp.certfile = u'/home/ubuntu/ssl/cert.pem' # path to the certificate we generated
+c.NotebookApp.keyfile = u'/home/ubuntu/ssl/cert.key' # path to the certificate key we generated
+c.IPKernelApp.pylab = 'inline'  # in-line figure when using Matplotlib
+c.NotebookApp.ip = '*'  # serve the notebooks locally
+c.NotebookApp.open_browser = False  # do not open a browser window by default when using notebooks
+c.NotebookApp.password = 'sha1:b592a9cf2ec6:b99edb2fd3d0727e336185a0b0eab561aa533a43'  # this is the password hash that we generated earlier.
+
+// Install Keras (again, shouldnt use sudo, but listed in above resource instructions)
+sudo pip install keras --upgrade --no-deps
+
+// From local machine
+sudo ssh -i awsKeys.pem -L local_port:local_machine:remote_port remote_machine
+sudo ssh -i awsKeys.pem -L 443:127.0.0.1:8888 ubuntu@ec2-54-147-126-214.compute-1.amazonaws.com
+
+
+
+
+// Git
+sudo apt-get install git
+ssh-keygen -t rsa -b 4096 -C "your_email@example.com"
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa
+git clone git@github.com:ionox0/project.git
+
+
+
+
+// Required Python packages for project
+sudo pip2 install h5py scipy scikit-learn scikit-image
+
+
+
+
+// OpenCV Section (http://rodrigoberriel.com/2014/10/installing-opencv-3-0-0-on-ubuntu-14-04/)
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get -y install libopencv-dev build-essential cmake git libgtk2.0-dev pkg-config python-dev python-numpy libdc1394-22 libdc1394-22-dev libjpeg-dev libpng12-dev libtiff4-dev libjasper-dev libavcodec-dev libavformat-dev libswscale-dev libxine-dev libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev libv4l-dev libtbb-dev libqt4-dev libfaac-dev libmp3lame-dev libopencore-amrnb-dev libopencore-amrwb-dev libtheora-dev libvorbis-dev libxvidcore-dev x264 v4l-utils unzip
+mkdir opencv
+cd opencv
+wget https://github.com/Itseez/opencv/archive/3.0.0-alpha.zip -O opencv-3.0.0-alpha.zip
+unzip opencv-3.0.0-alpha.zip
+
+cd opencv-3.0.0-alpha
+mkdir build
+cd build
+
+// Note the CUDA flag
+cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D WITH_TBB=ON -D WITH_V4L=ON -D WITH_QT=ON -D WITH_OPENGL=ON -D WITH_CUDA=OFF ..
+make -j $(nproc)
+sudo make install
+
+
+
+
+// Miscelaneous Packages Section
+sudo apt-get install htop
+sudo apt-get install python-tk // for %matplotlib auto errors
