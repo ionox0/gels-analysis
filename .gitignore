@@ -1,3 +1,5 @@
 .idea
 data
 app/train_images/*.jpg
+models
+ipython/models
