@@ -1,12 +1,8 @@
-import matplotlib
-matplotlib.use('Agg')
-
 import copy
-import keras
+# import keras
 from skimage.morphology import opening, closing
 
 from preprocessor import *
-
 
 
 
@@ -17,7 +13,9 @@ model_single = keras.models.load_model('./models/digits_cnn_new')
 
 def extract_numbers(
         im,
+        grayscale=False,
         thresh=30,
+        invert=True,
         blue_thresh=False,
         binary_roi=False,
         separate_c=False,
@@ -31,13 +29,20 @@ def extract_numbers(
         should_deskew=False):
 
     im_c = im.copy()
-    # Convert to grayscale
-    im_gray = cv2.cvtColor(im_c, cv2.COLOR_BGR2GRAY)
-    # Just blue channel
-    im_one = im_c.astype(np.uint8)[:, :, 2]
-    # Invert the image (todo - use im_gray?)
-    im_gray = (255 - im_one)
 
+    # Convert to grayscale
+    if grayscale:
+        im_gray = cv2.cvtColor(im_c, cv2.COLOR_BGR2GRAY)
+    else:
+        # Just use blue channel
+        im_gray = im_c.astype(np.uint8)[:, :, 2]
+
+    # Invert the image (todo - use im_gray?)
+    if invert:
+        im_gray = (255 - im_gray)
+
+    # Blue thresholding uses original image,
+    # regular thresholding uses im_gray
     if blue_thresh:
         im_th = thresh_img(im, thresh, blue_thresh=True)
     else:
@@ -75,7 +80,9 @@ def extract_numbers(
     prev_end_x = sorted_rects[0][0] + sorted_rects[0][2]
     prev_end_y = sorted_rects[0][1] + sorted_rects[0][3]
 
-    # For each rectangular region, predict the digit using classifier
+    # For each rectangular region,
+    # extract the roi from the preprocessed image,
+    # and predict the digit using classifier
     for i, rect in enumerate(sorted_rects):
         x_start = rect[0]
         y_start = rect[1]
@@ -141,7 +148,7 @@ def extract_numbers(
         # Mark the roi, label, and hierarchy
         cv2.rectangle(im_c, (rect[0], rect[1]), (rect[0] + rect[2], rect[1] + rect[3]), (0, 100, 255), 1)
         cv2.putText(im_c, str(int(nbr)), (rect[0], rect[1]), cv2.FONT_ITALIC, 0.4, (255, 0, 100), 1)
-        #         cv2.putText(im_c, str(hierarchy[0][i]) + str(int(nbr)), (rect[0], rect[1] - (250 - i*20)), cv2.FONT_ITALIC, 0.4, (randint(0,255), 0, 255), 1)
+        # cv2.putText(im_c, str(hierarchy[0][i]) + str(int(nbr)), (rect[0], rect[1] - (250 - i*20)), cv2.FONT_ITALIC, 0.4, (randint(0,255), 0, 255), 1)
 
         if dbl:
             dbl_label = str(int(dbl_nbr))

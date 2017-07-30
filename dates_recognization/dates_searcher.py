@@ -1,8 +1,8 @@
 import re
 from datetime import datetime
 
-
-date_regex = r'^([01]?[0-9])1?([0-2]?[0-9]|3[01])1?([0-9]{2}|19[0-9]{2}|20[0-9]{2})$'
+# Todo: Using '1' as sep is not robust
+date_regex = r'^([01]?[0-9])1([0-2]?[0-9]|3[01])1([0-9]{2}|19[0-9]{2}|20[0-9]{2})$'
 
 
 def find_dates(all_date_possibs):
@@ -20,7 +20,7 @@ def find_dates(all_date_possibs):
 
     # Add first two year digits
     yearfix = [(d[0], d[1], '19' + d[2]) if int(d[2]) > 40 and len(d[2]) == 2 else d for d in all_d_match]
-    yearfix = [(d[0], d[1], '20' + d[2]) if int(d[2]) < 40 and len(d[2]) == 2 else d for d in yearfix]
+    yearfix = [(d[0], d[1], '20' + d[2]) if int(d[2]) <= 40 and len(d[2]) == 2 else d for d in yearfix]
 
     # Date objs
     try:

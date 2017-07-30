@@ -1,68 +1,30 @@
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('agg')
+
+import re
+import dateutil.parser
 
 import os
-from itertools import product
 import scipy
+import multiprocessing
+from itertools import product
+from skimage.morphology import disk
 from matplotlib import pyplot as plt
-from skimage.morphology import square, disk
-
-from digits_extractor import extract_numbers
-from dates_searcher import find_dates
 
 
-nov_imgs = [1,6,12,21,41,42,51,52,56,83,84,89,90,96,97,106,123,131,136,152,153,156,157]
-nov_filenames = ['./data/gels_nov_2016/Im{} - p. {}.png'.format(i, i) for i in nov_imgs]
+
+
+nov_imgs = [f for f in os.listdir('./data/gels_nov_2016') if not 'tore' in f]
+nov_filenames = ['./data/gels_nov_2016/{}'.format(f) for f in nov_imgs]
+# Go back to this if errors:
 nov_images = [scipy.misc.imread(f) for f in nov_filenames]
+# nov_images = [cv2.imread(f) for f in nov_filenames]
 
 # april_imgs = [f for f in os.listdir('./data/april_2016_gels_renamed') if not 'tore' in f]
 # april_filenames = ['./data/april_2016_gels_renamed/{}'.format(f) for f in april_imgs]
 # april_images = [scipy.misc.imread(f) for f in april_filenames]
-
 # im = april_images[14][500:2500,240:2230]
 
-
-param_grid = {
-    'thresh': [20, 80],# 80],
-    'blue_thresh': [False, True],
-    'binary_roi': [False],
-    'separate_c': [False],# False],
-    'blur': [0, 2, 5],
-    'brightness_inc': [0, 35],
-    'contrast_inc': [0, 2],
-    'opening_shape': [None, disk(3)],
-    'closing_shape': [None, disk(2)],
-    'dilation_size': [0, 2, 3],
-    'erosion_size': [0, 3, 4],
-    'should_deskew': [True, False]
-}
-
-# for i, im in enumerate(nov_images):
-#     print("NEW FILE: ", nov_filenames[i])
-#     run_extraction(im)
-
-
-def run_extraction(im):
-    params_set = [param_grid[key] for key in param_grid.keys()]
-    params_combs = list(product(*params_set))
-    params_combs_dicts = [dict(zip(param_grid.keys(), p)) for p in params_combs]
-
-    for params in params_combs_dicts:
-        try:
-            print(params)
-            im_labeled, rois, date_possibs, probs = extract_numbers(im, **params)
-
-            plt.imshow(im_labeled)
-            plt.show()
-
-            # plot_things(rois, range(len(rois)))
-
-            found_dates = find_dates(date_possibs)
-            for d in found_dates:
-                print "Found Date: " + d
-        except Exception as e:
-            print(e)
-            continue
 
 
 def plot_things(things, labels):
@@ -83,3 +45,79 @@ def plot_things(things, labels):
 
         plt.imshow(thing)
     plt.show()
+
+
+def run_extract_with_params(im, params_combs_dicts, date_parsed):
+    from digits_extractor import extract_numbers
+    from dates_searcher import find_dates
+
+    for params in params_combs_dicts:
+        try:
+            print('here')
+            im_labeled, rois, date_possibs, probs = extract_numbers(im, **params)
+
+            found_dates = find_dates(date_possibs)
+            if check_date_answer(found_dates, date_parsed):
+                print params
+                return True
+
+        except Exception as e:
+            print(e)
+            continue
+
+    return False
+
+
+def check_date_answer(found_dates, date_parsed):
+    for d in found_dates:
+        print "Found Date: " + d
+
+        if d == date_parsed.strftime('%Y-%m-%d'):
+            print 'CORRECT!'
+            return True
+    return False
+
+
+def extract_one(i):
+    param_grid = {
+        'thresh': [80, 20],
+        'blue_thresh': [False, True],
+        'binary_roi': [True, False],
+        'separate_c': [False, True],
+        'blur': [0, 3, 5],
+        'brightness_inc': [35, 0],
+        'contrast_inc': [0, 2],
+        'opening_shape': [disk(3), None],
+        'closing_shape': [None, disk(2)],
+        'dilation_size': [0, 2, 3],
+        'erosion_size': [0, 3, 4],
+        'should_deskew': [True, False]
+    }
+
+    im = nov_images[i].copy()
+    filename = nov_filenames[i]
+    print(filename)
+
+    date = re.search(r'(\d\d-\d\d?-\d\d?)', filename).groups()[0]
+    date_parsed = dateutil.parser.parse(date)
+
+    params_set = [param_grid[key] for key in param_grid.keys()]
+    params_combs = list(product(*params_set))
+    params_combs_dicts = [dict(zip(param_grid.keys(), p)) for p in params_combs]
+
+    if run_extract_with_params(im, params_combs_dicts, date_parsed):
+        return True
+
+    return False
+
+
+
+if __name__ == "__main__":
+    pool = multiprocessing.Pool(4)
+    result = pool.map(extract_one, range(len(nov_images)))
+
+    print 'Finished'
+
+    for value in result:
+        print value
+

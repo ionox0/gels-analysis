@@ -1,7 +1,7 @@
-import matplotlib
-matplotlib.use('Agg')
-
 import cv2
+
+print(cv2.__file__)
+
 import keras
 import numpy as np
 from skimage.feature import hog
@@ -11,8 +11,8 @@ from sklearn.externals import joblib
 
 
 
-model_differentiator_cnn = keras.models.load_model('./models/double_digits_differentiator')
 # model_differentiator_svm = joblib.load('./models/dbl_digits_differentiator_balanced_hog.pkl')
+model_differentiator_cnn = keras.models.load_model('./models/double_digits_differentiator')
 dbl_single_feats_pp = joblib.load('./models/dbl_single_feats_balanced_pp.pkl')
 
 
@@ -56,6 +56,7 @@ def im_preprocessing(im_gray, blur, brightness_inc, contrast_inc, dilation_size,
     if erosion_size:
         selem = disk(erosion_size)
         im_gray = erosion(im_gray, selem)
+
     return im_gray
 
 
@@ -63,8 +64,8 @@ def find_rects_ctrs(im_th):
     # Find Contours
     _, ctrs, hierarchy = cv2.findContours(im_th, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     # Filter based on hierarchy
-    #     ctrs = [c for i, c in enumerate(ctrs) if hierarchy[0][i][-1] == -1]
-    #     hierarchy = [h for i, h in enumerate(hierarchy[0]) if hierarchy[0][i][-1] == -1]
+    ctrs = [c for i, c in enumerate(ctrs) if hierarchy[0][i][-1] == -1]
+    hierarchy = [h for i, h in enumerate(hierarchy[0]) if hierarchy[0][i][-1] == -1]
     # Get Contour bounding boxes
     rects = [cv2.boundingRect(ctr) for ctr in ctrs]
     # Remove small rects
@@ -124,13 +125,11 @@ def separate_connected(rect, ctr, im_gray):
     hull = cv2.convexHull(ctr, returnPoints=False)
     defects = cv2.convexityDefects(ctr, hull)
 
-    try:
+    if hasattr(defects, 'shape'):
         mean_defect_dist = sum([d for s, e, f, d in defects[:, 0]]) / defects.shape[0]
         large_defects = [(s, e, f, d) for s, e, f, d in defects[:, 0] if d > mean_defect_dist]
-    except Exception as e:
-        # Todo - fix
-        print(e)
-        print("Error handling convex hull defects, skipping digits separation")
+    else:
+        print("Roi is convex, no defects found")
         return [rect], [ctr]
 
     roi = np.pad(roi, ((y_start, 0), (x_start, 0)), 'constant', constant_values=(0, 0))
@@ -192,6 +191,7 @@ def horiz_dist_ratio_check(r1, r2):
 
 
 def draw_roi(rect, i, sorted_ctrs, im_gray, binary_roi):
+    # Todo: take 2nd level of hierarchy, draw holes for 4, 6, 8, 9, 0 etc...
     x_start = rect[0]
     y_start = rect[1]
     width = rect[2]
@@ -221,11 +221,10 @@ def draw_roi(rect, i, sorted_ctrs, im_gray, binary_roi):
     return roi_resized
 
 
-SZ = 28
-affine_flags = cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR
-
-
 def deskew(img):
+    SZ = 28
+    affine_flags = cv2.WARP_INVERSE_MAP | cv2.INTER_LINEAR
+
     m = cv2.moments(img)
     if abs(m['mu02']) < 1e-2:
         return img.copy()
