@@ -6,12 +6,15 @@ import dateutil.parser
 
 import os
 import scipy
+import logging
 import multiprocessing
 from itertools import product
 from skimage.morphology import disk
 from matplotlib import pyplot as plt
 
 
+logging.basicConfig(filename='test_extractor.log', level=logging.DEBUG,
+                    format='%(asctime)s:%(levelname)s:%(message)s')
 
 
 nov_imgs = [f for f in os.listdir('./data/gels_nov_2016') if not 'tore' in f]
@@ -53,16 +56,15 @@ def run_extract_with_params(im, params_combs_dicts, date_parsed):
 
     for params in params_combs_dicts:
         try:
-            print('here')
             im_labeled, rois, date_possibs, probs = extract_numbers(im, **params)
 
             found_dates = find_dates(date_possibs)
             if check_date_answer(found_dates, date_parsed):
-                print params
+                logging.info('Correct params: ', params)
                 return True
 
         except Exception as e:
-            print(e)
+            logging.error('ERROR: ', e)
             continue
 
     return False
@@ -70,10 +72,10 @@ def run_extract_with_params(im, params_combs_dicts, date_parsed):
 
 def check_date_answer(found_dates, date_parsed):
     for d in found_dates:
-        print "Found Date: " + d
+        logging.info("Found Date: " + d)
 
         if d == date_parsed.strftime('%Y-%m-%d'):
-            print 'CORRECT!'
+            logging.info('Correct Date Found')
             return True
     return False
 
@@ -96,7 +98,7 @@ def extract_one(i):
 
     im = nov_images[i].copy()
     filename = nov_filenames[i]
-    print(filename)
+    logging.info('Extracting dates from file: ', filename)
 
     date = re.search(r'(\d\d-\d\d?-\d\d?)', filename).groups()[0]
     date_parsed = dateutil.parser.parse(date)
@@ -116,8 +118,8 @@ if __name__ == "__main__":
     pool = multiprocessing.Pool(4)
     result = pool.map(extract_one, range(len(nov_images)))
 
-    print 'Finished'
+    logging.info('Finished')
 
     for value in result:
-        print value
+        logging.info(value)
 

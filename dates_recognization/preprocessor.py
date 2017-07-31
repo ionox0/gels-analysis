@@ -1,8 +1,6 @@
 import cv2
-
-print(cv2.__file__)
-
 import keras
+import logging
 import numpy as np
 from skimage.feature import hog
 from skimage.morphology import erosion, dilation
@@ -129,7 +127,7 @@ def separate_connected(rect, ctr, im_gray):
         mean_defect_dist = sum([d for s, e, f, d in defects[:, 0]]) / defects.shape[0]
         large_defects = [(s, e, f, d) for s, e, f, d in defects[:, 0] if d > mean_defect_dist]
     else:
-        print("Roi is convex, no defects found")
+        logging.debug("Roi is convex, no defects found")
         return [rect], [ctr]
 
     roi = np.pad(roi, ((y_start, 0), (x_start, 0)), 'constant', constant_values=(0, 0))
