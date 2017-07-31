@@ -60,11 +60,11 @@ def run_extract_with_params(im, params_combs_dicts, date_parsed):
 
             found_dates = find_dates(date_possibs)
             if check_date_answer(found_dates, date_parsed):
-                logging.info('Correct params: ', params)
+                logging.info('Correct params: {}'.format(params))
                 return True
 
         except Exception as e:
-            logging.error('ERROR: ', e)
+            logging.error('ERROR: {}'.format(e))
             continue
 
     return False
@@ -72,7 +72,7 @@ def run_extract_with_params(im, params_combs_dicts, date_parsed):
 
 def check_date_answer(found_dates, date_parsed):
     for d in found_dates:
-        logging.info("Found Date: " + d)
+        logging.info("Found Date: {}".format(d))
 
         if d == date_parsed.strftime('%Y-%m-%d'):
             logging.info('Correct Date Found')
@@ -98,7 +98,7 @@ def extract_one(i):
 
     im = nov_images[i].copy()
     filename = nov_filenames[i]
-    logging.info('Extracting dates from file: ', filename)
+    logging.info('Extracting dates from file: {}'.format(filename))
 
     date = re.search(r'(\d\d-\d\d?-\d\d?)', filename).groups()[0]
     date_parsed = dateutil.parser.parse(date)
