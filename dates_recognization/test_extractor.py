@@ -13,7 +13,7 @@ from skimage.morphology import disk
 from matplotlib import pyplot as plt
 
 
-logging.basicConfig(filename='test_extractor.log', level=logging.DEBUG,
+logging.basicConfig(filename='test_extractor.log', level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(message)s')
 
 
