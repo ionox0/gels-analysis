@@ -28,6 +28,8 @@ def extract_numbers(
         erosion_size=0,
         should_deskew=False):
 
+    print("Extracting...")
+
     im_c = im.copy()
 
     # Convert to grayscale
