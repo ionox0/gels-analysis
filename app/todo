@@ -1,22 +1,3 @@
-- weird struct
-- works with pdfs (extracts images)
-- y_min and y_max from bounding box (js)
-- return densitometry graph of lanes
-- normalize y_min and y_max?
-- logging
-- tests
-- only use blue channel for y_mean?
-- modularize
-- mean kernel smoothing
-
-- classification
-    - train on old samples
-    - how to normalize coordinates?
-    - which gel format to use? how to normalize across colors + dimensions / lengths?
-    - issues with lighting, blur, translation etc
-        - requires extensive image manipulation? various processing modules?
-
-
 LTP
 - save past results
     - spreadsheet
@@ -28,4 +9,10 @@ LTP
 1. fix in firefox (/ safari / ie) √
 3. auto classification
 2. auto y-boxing
+
+
+Finish 1st attempt at linking:
+- dates collection
+- lanes collection
+- labels collection
 
