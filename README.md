@@ -7,7 +7,7 @@ The images are samples from individuals suspected of having Multiple Myeloma, wh
 
 Initial work centered around a manual classification process, using a web application to hand label individual lanes:
 
-[Webapp](gels-analysis.herokuapp.com)
+[Webapp](http://gels-analysis.herokuapp.com)
 
 See [training results](https://github.com/ionox0/gels-analysis/blob/master/misc/Training%20Attempt%201.pdf) for initial accuracy measurements.
 
