@@ -11,8 +11,8 @@ from sklearn.externals import joblib
 
 
 # model_differentiator_svm = joblib.load('./models/dbl_digits_differentiator_balanced_hog.pkl')
-model_differentiator_cnn = keras.models.load_model('./models/double_digits_differentiator')
-dbl_single_feats_pp = joblib.load('./models/dbl_single_feats_balanced_pp.pkl')
+model_differentiator_cnn = keras.models.load_model('../models/double_digits_differentiator')
+dbl_single_feats_pp = joblib.load('../models/dbl_single_feats_balanced_pp.pkl')
 
 
 def thresh_img(im, thresh, blue_thresh=False):

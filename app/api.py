@@ -10,7 +10,7 @@ from nocache import nocache
 import sys
 sys.path.insert(0, '')
 from classifier import manual_classify_gel, auto_classify_gel
-from train.train_api import train_api
+from manual_train.train_api import train_api
 
 
 

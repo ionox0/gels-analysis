@@ -1,97 +1,15 @@
-import os
-import sys
-import scipy
 import warnings
-from itertools import product
-import collections
-from datetime import datetime
 
-from skimage import transform
+from scipy import stats
 from skimage.draw import circle
-from skimage.color import rgb2gray
-from skimage.morphology import disk
-from skimage.exposure import rescale_intensity
 from skimage.feature import match_template # (only works for single match)?
-from skimage import data, img_as_float
-
+from sklearn.ensemble import IsolationForest
 from sklearn.cluster import KMeans
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.cross_validation import train_test_split
-
-from app.labels_collector.labels_collector import get_labels, get_dz_labels
-
 from matplotlib import pyplot as plt
-
-warnings.filterwarnings("ignore")
-
-
-
-
-
-# Allow to import local python modules here in Jupyter
-module_path = os.path.abspath(os.path.join('..'))
-if module_path not in sys.path:
-    sys.path.append(module_path)
 
 from app.utils.preprocessing import *
 
-
-ORIG_IMAGES = []
-
-def load_april_2016_images():
-    '''
-    Read images data from data folder for April gels
-    :return:
-    '''
-    filenames = os.listdir('./data/april_2016_gels_renamed/')
-    filenames = [x for x in filenames if 'pep1' in x]
-    filenames = [x for x in filenames if not 'big' in x]
-
-    imgs_april = []
-    for filename in filenames[0:20]:
-        img = load_and_process_image('./data/april_2016_gels_renamed/' + filename)
-        imgs_april.append(img)
-
-    return imgs_april
-
-
-def load_nov_2016_images():
-    '''
-    Read images data from data folder for November gels
-    :return:
-    '''
-    imgs_nov = []
-    imgs_nov_idx = [1, 6, 12, 21, 41, 42, 51, 52, 56, 83, 84, 89, 90, 96, 97, 106, 123, 131, 136, 152, 153, 156, 157]  # 7, 22
-
-    nov_imgs = [f for f in os.listdir('./data/gels_nov_2016') if not 'tore' in f]
-    nov_filenames = ['./data/gels_nov_2016/{}'.format(f) for f in nov_imgs]
-
-    for idx in imgs_nov_idx[0:2]:
-        filename = nov_filenames[idx]
-        img = load_and_process_image(filename)
-        imgs_nov.append(img)
-
-    return imgs_nov
-
-
-def load_and_process_image(filename):
-    '''
-    Read an image and resize to consistent sizing (hard coded for now)
-    :param filename:
-    :return:
-    '''
-    shape = (1276, 2100)
-
-    ORIG_IMAGES.append(scipy.misc.imread(filename))
-
-    cur_im = data.imread(filename, flatten=True)
-    cur_im = img_as_float(cur_im)
-    cur_im = rescale_intensity(cur_im)
-    cur_im = rgb2gray(cur_im)
-
-    cur_im = transform.resize(cur_im, output_shape=shape)  # todo
-    return cur_im
-
+warnings.filterwarnings("ignore")
 
 
 def find_matches(img, template, alb):
@@ -233,201 +151,56 @@ def group_lanes_per_date(all_lanes, lanes_per_gel, labels, good_class):
     return good_lanes_per_gel, bad_lanes_per_gel
 
 
-# Cluster out bad lanes
-# plot_lanes([x[0] for x in bad_lanes_per_gel[7]], ['a']*500)
-# plt.show()
-#
-# km = KMeans(n_clusters=2)
-# km.fit(lanes_flat)
-#
-# gld_label = np.argmin([np.sum((x.reshape(gld.shape) - gld) ** 2) for x in km.cluster_centers_])
-#
-# labeled = [(img_and_lane_number, label) for img_and_lane_number, label in zip(lanes_flat, km.labels_)]
-# lanes_good = np.array(all_lanes)[km.labels_ == gld_label]
-# lanes_bad = np.array(all_lanes)[km.labels_ != gld_label]
-#
-# good_lanes_per_gel, bad_lanes_per_gel = group_lanes_per_date(all_lanes, km.labels_, gld_label)
-# len(lanes_good), len(lanes_bad)
-
-
-# Isoforest for bad lanes
-# from sklearn.ensemble import IsolationForest
-# from scipy import stats
-#
-#
-# rng = np.random.RandomState(42)
-# n_samples = 200
-# outliers_fraction = 0.02
-# clusters_separation = [0, 1, 2]
-#
-# iso = IsolationForest(
-#     max_samples=n_samples,
-#     contamination=outliers_fraction,
-#     random_state=rng)
-#
-# iso.fit(lanes_flat)
-# scores_pred = iso.decision_function(lanes_flat)
-# threshold = stats.scoreatpercentile(scores_pred, 100 * outliers_fraction)
-# y_pred = iso.predict(lanes_flat)
-#
-# labeled = [(img_and_lane_number, label) for img_and_lane_number, label in zip(lanes_flat, y_pred)]
-# lanes_good = np.array(all_lanes)[y_pred == 1]
-# lanes_bad = np.array(all_lanes)[y_pred != 1]
-
-
-def retreive_labels(start_date, end_date):
-    '''
-    Load Labels from pre-existing Excel spreadsheet
-    :param start_date:
-    :param end_date:
-    :return:
-    '''
-    labels = get_labels(start_date, end_date)
-    dz_labels = get_dz_labels(labels)
-
-    return dz_labels
-
-
-# od = collections.OrderedDict(sorted(nov_2016_dz_labels.items()))
-# asdf = [1,6,12,21,41,42,51,52,56,83,84,89,90,96,97,106,123,131,136,152,153,156,157] # 7, 22
-#
-# blah = zip([str(i + 1) + ' ' + str(val) for i, val in enumerate(asdf)], od.items())
-#
-# print blah
-
-
-def build_labels(labels, date, lanes):
-    '''
-    Turn values from Excel spreadsheet into 0 (ctrl) or 1 (dz), and return in list
-    :return:
-    '''
-    y = []
-    for i in range(len(lanes)):
-        if i in labels[date]:
-            y.append(1)
-        else:
-            y.append(0)
-
-    return y
-
-
-
-### Classification
-def auto_classify(X_flat, y):
-    x_train, x_test, y_train, y_test = train_test_split(X_flat, y)
-
-    clf = RandomForestClassifier()
-    clf.fit(x_train, y_train)
-    score = clf.score(x_test, y_test)
-    print score
-
-    plt.figure(figsize=(20, 16))
-
-    X_means_df = pd.DataFrame(X_flat)
-
-    ctrl = X_means_df[np.array(y) == 0]
-    print len(ctrl), len(y)
-    plt.subplot(211)
-    ctrl.T.plot(alpha=.1, color='blue', ax=plt.gca(), legend=None, label='ctrl')
-
-    dz = X_means_df[np.array(y) == 1]
-    print len(dz), len(y)
-    plt.subplot(212)
-    dz.T.plot(alpha=.1, color='red', ax=plt.gca(), legend=None, label='dz')
-
+def cluster_out_bad_lanes(bad_lanes_per_gel, lanes_flat, gld, all_lanes):
+    plot_lanes([x[0] for x in bad_lanes_per_gel[7]], ['a']*500)
     plt.show()
 
+    km = KMeans(n_clusters=2)
+    km.fit(lanes_flat)
+
+    gld_label = np.argmin([np.sum((x.reshape(gld.shape) - gld) ** 2) for x in km.cluster_centers_])
+
+    # labeled = [(img_and_lane_number, label) for img_and_lane_number, label in zip(lanes_flat, km.labels_)]
+    lanes_good = np.array(all_lanes)[km.labels_ == gld_label]
+    lanes_bad = np.array(all_lanes)[km.labels_ != gld_label]
+
+    good_lanes_per_gel, bad_lanes_per_gel = group_lanes_per_date(all_lanes, km.labels_, gld_label)
+    print len(lanes_good), len(lanes_bad), len(good_lanes_per_gel), len(bad_lanes_per_gel)
+
+    return lanes_good, lanes_bad, good_lanes_per_gel, bad_lanes_per_gel
 
 
-imgs_nov = load_nov_2016_images()
-imgs_april = load_april_2016_images()
-all_images = imgs_nov + imgs_april
+def isoforest_out_bad_lanes(lanes_flat, all_lanes):
+    rng = np.random.RandomState(42)
+    n_samples = 200
+    outliers_fraction = 0.02
+    clusters_separation = [0, 1, 2]
 
-### Grab Albumin roi
-alb = imgs_nov[0][307:398, 460:507]
-lanes_per_gel, all_lanes = get_the_lanes(all_images, alb)
+    iso = IsolationForest(
+        max_samples=n_samples,
+        contamination=outliers_fraction,
+        random_state=rng)
 
-print('Lanes per gel len: ', len(lanes_per_gel))
-print('All lanes len: ', len(all_lanes))
-print 'ORIG_IMAGES len: ', len(ORIG_IMAGES)
+    iso.fit(lanes_flat)
+    scores_pred = iso.decision_function(lanes_flat)
+    threshold = stats.scoreatpercentile(scores_pred, 100 * outliers_fraction)
+    y_pred = iso.predict(lanes_flat)
 
-
-# Gold std lanes
-gld = all_lanes[0][0]
-# gld_bad = all_lanes[279][0]
-gld_bad = all_lanes[179][0]
-
-all_lanes_filt = all_lanes
-bad_dists = np.array([np.sum((x[0] - gld_bad) ** 2) for x in all_lanes_filt])
-good_dists = np.array([np.sum((x[0] - gld) ** 2) for x in all_lanes_filt])
-dist_labels = [0 if good_dists[i] < bad_dists[i] else 1 for i, dist in enumerate(bad_dists)]
-
-bad_dists_inds = np.array(np.argsort(bad_dists))
-
-# hard-code threshold
-threshold = 19.0
-bad_selected = np.array(all_lanes_filt)[bad_dists < 19]
-good_selected = np.array(all_lanes_filt)[good_dists < 19]
-
-# use min(good_dist, bad_dist)
-good_lanes_per_gel, bad_lanes_per_gel = group_lanes_per_date(all_lanes_filt, lanes_per_gel, dist_labels, 0)
-
-print len(good_lanes_per_gel), len(good_lanes_per_gel[0])
+    labeled = [(img_and_lane_number, label) for img_and_lane_number, label in zip(lanes_flat, y_pred)]
+    lanes_good = np.array(all_lanes)[y_pred == 1]
+    lanes_bad = np.array(all_lanes)[y_pred != 1]
 
 
+def good_bad_euclid(gld, gld_bad, all_lanes_filt):
+    bad_dists = np.array([np.sum((x[0] - gld_bad) ** 2) for x in all_lanes_filt])
+    good_dists = np.array([np.sum((x[0] - gld) ** 2) for x in all_lanes_filt])
+    dist_labels = [0 if good_dists[i] < bad_dists[i] else 1 for i, dist in enumerate(bad_dists)]
 
-param_grid = {
-    'thresh': [80],# 20],
-    'blue_thresh': [False],# True],
-    'binary_roi': [True],# False],
-    'separate_c': [False],# True],
-    'blur': [0],# 3, 5],
-    'brightness_inc': [35, 0],
-    'contrast_inc': [0],# 2],
-    'opening_shape': [disk(3), None],
-    'closing_shape': [None, disk(2)],
-    'dilation_size': [0, 2],# 3],
-    'erosion_size': [0, 3],# 4],
-    'should_deskew': [True],# False]
-}
+    bad_dists_inds = np.array(np.argsort(bad_dists))
 
-params_set = [param_grid[key] for key in param_grid.keys()]
-params_combs = list(product(*params_set))
-params_combs_dicts = [dict(zip(param_grid.keys(), p)) for p in params_combs]
+    # Hard-code threshold
+    threshold = 19.0
+    bad_selected = np.array(all_lanes_filt)[bad_dists < threshold]
+    good_selected = np.array(all_lanes_filt)[good_dists < threshold]
 
-from digits_extractor import extract_numbers
-from dates_searcher import find_dates
-
-found_boolv = []
-found_dates = []
-for im in ORIG_IMAGES:
-    for params in params_combs_dicts:
-        print params
-        im_c, rois, date_possibs, probs = extract_numbers(im, **params)
-        dates = find_dates(date_possibs)
-        if len(dates):
-            print "Found dates: ", dates
-            found_dates.append(dates[0]) # Todo - just take first found date for now...
-            found_boolv.append(1)
-            break
-    found_boolv.append(0)
-
-print("found boolv: ", found_boolv)
-
-labels = [retreive_labels(datetime.strptime(fd, '%Y-%m-%d'), datetime.strptime(fd, '%Y-%m-%d')) for fd in found_dates]
-
-good_lanes_per_gel_filt = [x for i, x in enumerate(good_lanes_per_gel) if found_boolv[i] == 1]
-X = [zip(calc_lane_means([z[0] for z in x]), [z[1] for z in x]) for x in good_lanes_per_gel_filt]
-
-print labels, found_dates, len(X)
-
-ys = [build_labels(labels[i], found_dates[i], x) for i, x in enumerate(X)]
-y = [y for yx in ys for y in yx]
-
-X_flat = [z[0] for x in X for z in x]
-print len(X), len(X_flat), len(y)
-
-print len(imgs_nov), len(labels)
-
-auto_classify(X_flat, y)
-
+    return dist_labels

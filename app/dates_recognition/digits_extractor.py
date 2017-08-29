@@ -7,8 +7,8 @@ from preprocessor import *
 
 
 # clf, pp = joblib.load('./models/digits_cls.pkl')
-model = keras.models.load_model('./models/double_digits_cnn_nonbinary')
-model_single = keras.models.load_model('./models/digits_cnn_new')
+model = keras.models.load_model('../models/double_digits_cnn_nonbinary')
+model_single = keras.models.load_model('../models/digits_cnn_new')
 
 
 def extract_numbers(

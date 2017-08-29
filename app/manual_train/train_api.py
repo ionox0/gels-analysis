@@ -43,7 +43,7 @@ def fit_model_route():
     """
     train_score, test_score = fit_and_save_model()
     scores = {
-        'train': train_score,
+        'manual_train': train_score,
         'test': test_score
     }
     return json.dumps(scores)

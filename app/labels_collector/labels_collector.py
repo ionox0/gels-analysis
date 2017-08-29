@@ -3,13 +3,11 @@ import pandas as pd
 from datetime import datetime
 
 
-
-
 pd.options.display.max_columns = 9999
 pd.options.display.max_rows = 9999
 
 # Read Excel File
-labels_full = pd.read_excel('./data/2012-2017_labels.xlsx', sheetname='2016')
+labels_full = pd.read_excel('../data/2012-2017_labels.xlsx', sheetname='2016')
 
 # Drop Missing all
 labels_full = labels_full.dropna(axis=1, how='all')
@@ -57,9 +55,39 @@ def get_dz_labels(labels):
     return dz_labels
 
 
+def retreive_labels(start_date, end_date):
+    '''
+    Load Labels from pre-existing Excel spreadsheet
+    :param start_date:
+    :param end_date:
+    :return:
+    '''
+    labels = get_labels(start_date, end_date)
+    dz_labels = get_dz_labels(labels)
 
-# april_2016_labels = get_labels(datetime(2016, 4, 1), datetime(2016, 4, 30))
-# april_2016_dz_labels = get_dz_labels(april_2016_labels)
+    return dz_labels
+
+
+# od = collections.OrderedDict(sorted(nov_2016_dz_labels.items()))
+# asdf = [1,6,12,21,41,42,51,52,56,83,84,89,90,96,97,106,123,131,136,152,153,156,157] # 7, 22
 #
-# nov_2016_labels = get_labels(datetime(2016, 11, 1), datetime(2016, 11, 30))
-# nov_2016_dz_labels = get_dz_labels(nov_2016_labels)
+# blah = zip([str(i + 1) + ' ' + str(val) for i, val in enumerate(asdf)], od.items())
+#
+# print blah
+
+
+def build_labels(labels, date, lanes):
+    '''
+    Turn values from Excel spreadsheet into 0 (ctrl) or 1 (dz), and return in list
+    :return:
+    '''
+    y = []
+    for i in range(len(lanes)):
+        if i in labels[date]:
+            y.append(1)
+        else:
+            y.append(0)
+
+    return y
+
+
