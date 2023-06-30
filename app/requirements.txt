@@ -4,4 +4,4 @@ scikit-image==0.13.0
 flask==0.12.1
 scikit-learn==0.18.0
 newrelic==2.18.1.15
-PyPDF2==1.26.0
+PyPDF2==1.27.9
